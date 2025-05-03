@@ -1,7 +1,9 @@
 /**************************************
+Transcoded from original verilog to VHDL-2008.
+
 Author: J.W Tang
 Email: jaytang1987@hotmail.com
-Module: equivalence_resolver
+Module: vhdl_feature_accumulator
 Date: 2016-04-24
 
 Copyright (C) 2016 J.W. Tang
