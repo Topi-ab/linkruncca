@@ -1,0 +1,11 @@
+This simulation uses Verilator tool.
+Please refer to http://www.veripool.org/projects/verilator/wiki/Installing for installation.
+
+Simulation only works on <.pgm> image format.
+It reads an PGM input image and outputs a bounding boxes image "box_out.pgm".
+
+Simulation can be initiated by running simulation script in terminal window:
+	sh CCA.sh
+
+Test image can be specified in the "CCA.sh" script:
+	img="testimage/4283.pgm"
