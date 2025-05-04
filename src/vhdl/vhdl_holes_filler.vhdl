@@ -66,7 +66,7 @@ begin
 
     process(all)
     begin
-        pix_out <= 'X';
+        pix_out <= x;
         if top = '1' and (left = '1' or right = '1') then
             pix_out <= '1';
         end if;

@@ -1,0 +1,18 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_verilog ../../../verilog/holes_filler.v
+prep -top holes_filler
+
+[gate]
+plugin -i ghdl
+ghdl --std=08 ../../vhdl_holes_filler.vhdl -e vhdl_holes_filler
+rename vhdl_holes_filler holes_filler
+prep -top holes_filler
+
+[strategy sby]
+use sby
+depth 2
+engine smtbmc boolector

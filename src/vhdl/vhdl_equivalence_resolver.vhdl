@@ -45,10 +45,10 @@ entity vhdl_equivalence_resolver is
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        a: in std_logic;
-        b: in std_logic;
-        c: in std_logic;
-        d: in std_logic;
+        A: in std_logic;
+        B: in std_logic;
+        C: in std_logic;
+        D: in std_logic;
         p: in unsigned(address_bit-1 downto 0);
         hp: in unsigned(address_bit-1 downto 0);
         np: in unsigned(address_bit-1 downto 0);
@@ -69,12 +69,12 @@ entity vhdl_equivalence_resolver is
         t_wdata: out unsigned(address_bit-1 downto 0);
         n_wdata: out unsigned(address_bit-1 downto 0);
         d_wdata: out std_logic_vector(data_bit-1 downto 0);
-        hcn: out std_logic;
-        dac: out std_logic;
-        dmg: out std_logic;
-        clr: out std_logic;
-        eoc: out std_logic;
-        o: out std_logic
+        HCN: out std_logic;
+        DAC: out std_logic;
+        DMG: out std_logic;
+        CLR: out std_logic;
+        EOC: out std_logic;
+        O: out std_logic
     );
 end;
 
@@ -88,17 +88,17 @@ architecture rtl of vhdl_equivalence_resolver is
 begin
     process(all)
     begin
-        dmg <= o when f = '1' and hp = h else '0';
+        dmg <= o when not(f = '1' and hp = h) else '0';
         dac <= d;
 
         ec <= c and not d;
         ep <= a and not b;
-        o <= b and d and (not a or not c);
+        o <= b and d and ((not a) or (not c));
         clr <= ec;
         hcn <= hbf when np = p else '0';
     end process;
 
-    process(clk)
+    process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
@@ -110,32 +110,32 @@ begin
                     f <= '1';
                 end if;
             end if;
+        end if;
 
-            if rst = '1' then
-                cc <= (others => '0');
-                h <= (others => '0');
-                f <= '0';
-            end if;
+        if rst = '1' then
+            cc <= (others => '0');
+            h <= (others => '0');
+            f <= '0';
         end if;
     end process;
 
     process(all)
     begin
         h_we <= '0';
-        h_waddr <= (others => 'X');
-        h_wdata <= (others => 'X');
+        h_waddr <= (others => '0');
+        h_wdata <= (others => '0');
 
         t_we <= '0';
-        t_waddr <= (others => 'X');
-        t_wdata <= (others => 'X');
+        t_waddr <= (others => '0');
+        t_wdata <= (others => '0');
         
         n_we <= '0';
-        n_waddr <= (others => 'X');
-        n_wdata <= (others => 'X');
+        n_waddr <= (others => '0');
+        n_wdata <= (others => '0');
         
         d_we <= '0';
-        d_waddr <= (others => 'X');
-        d_wdata <= (others => 'X');
+        d_waddr <= (others => '0');
+        d_wdata <= (others => '0');
 
         eoc <= '0';
         hbf <= '0';
@@ -144,6 +144,10 @@ begin
             n_we <= '1';
             n_waddr <= cc;
             n_wdata <= cc;
+
+            h_we <= '1';
+            h_waddr <= cc;
+            h_wdata <= cc;
 
             case f is
                 when '0' =>
@@ -157,9 +161,7 @@ begin
                 when others =>
                     null;
             end case;
-        end if;
-
-        if ep = '1' then
+        elsif ep = '1' then
             case fp is
                 when '0' =>
                     d_we <= '1';
@@ -184,7 +186,8 @@ begin
                     h_wdata <= cc;
 
                     t_we <= '1';
-                    t_waddr <= h_wdata;
+                    --t_waddr <= h_wdata;
+                    t_waddr <= cc;
                     t_wdata <= cc;
                 when "01" =>
                     h_we <= '1';
@@ -192,7 +195,8 @@ begin
                     h_wdata <= hp;
 
                     t_we <= '1';
-                    t_waddr <= h_wdata;
+                    --t_waddr <= h_wdata;
+                    t_waddr <= hp;
                     t_wdata <= cc;
 
                     n_we <= '1';
@@ -204,7 +208,8 @@ begin
                     h_wdata <= h;
 
                     t_we <= '1';
-                    t_waddr <= h_wdata;
+                    --t_waddr <= h_wdata;
+                    t_waddr <= h;
                     t_wdata <= cc;
                 when "11" =>
                     h_we <= '1';
@@ -212,7 +217,8 @@ begin
                     h_wdata <= hp;
 
                     t_we <= '1';
-                    t_waddr <= h_wdata;
+                    --t_waddr <= h_wdata;
+                    t_waddr <= hp;
                     t_wdata <= cc;
 
                     n_we <= '1';

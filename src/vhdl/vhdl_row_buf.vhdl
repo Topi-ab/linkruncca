@@ -50,13 +50,13 @@ entity vhdl_row_buf is
 end;
 
 architecture rtl of vhdl_row_buf is
-    signal r: std_logic_vector(0 to length-1);
+    signal r: std_logic_vector(length-1 downto 0);
 begin
     process(clk)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
-                r(1 to length-1) <= r(0 to length-2);
+                r(length-1 downto 1) <= r(length-2 downto 0);
                 r(0) <= pix_in;
             end if;
         end if;

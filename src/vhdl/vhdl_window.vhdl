@@ -42,10 +42,10 @@ entity vhdl_window is
         datavalid: in std_logic;
         pix_in_current: in std_logic;
         pix_in_previous: in std_logic;
-        a: out std_logic;
-        b: out std_logic;
-        c: out std_logic;
-        d: out std_logic
+        A: out std_logic;
+        B: out std_logic;
+        C: out std_logic;
+        D: out std_logic
     );
 end;
 

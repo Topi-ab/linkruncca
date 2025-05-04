@@ -1,0 +1,28 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_verilog ../../../verilog/equivalence_resolver.v
+# read_slang ../../../verilog/equivalence_resolver.v
+# chparam -set data_bit 36 equivalence_resolver
+prep -top equivalence_resolver
+opt_clean
+opt_expr
+flatten
+
+[gate]
+plugin -i ghdl
+ghdl --std=08 ../../vhdl_equivalence_resolver.vhdl -e vhdl_equivalence_resolver
+rename vhdl_equivalence_resolver equivalence_resolver
+prep -top equivalence_resolver
+opt_clean
+opt_expr
+flatten
+
+# [collect *]
+
+[strategy sby]
+use sby
+depth 2
+engine smtbmc boolector

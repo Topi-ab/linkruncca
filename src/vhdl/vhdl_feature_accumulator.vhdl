@@ -53,9 +53,9 @@ entity vhdl_feature_accumulator is
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        dac: in std_logic;
-        dmg: in std_logic;
-        clr: in std_logic;
+        DAC: in std_logic;
+        DMG: in std_logic;
+        CLR: in std_logic;
         dp: in std_logic_vector(data_bit-1 downto 0);
         d: out std_logic_vector(data_bit-1 downto 0)
     );
@@ -78,6 +78,30 @@ architecture rtl of vhdl_feature_accumulator is
     signal d_us: unsigned(data_bit-1 downto 0);
     signal dp_us: unsigned(data_bit-1 downto 0);
 begin
+    process(clk, rst)
+    begin
+        if rising_edge(clk) then
+            if datavalid = '1' then
+                if x = compx then
+                    x <= to_unsigned(0, x);
+                    if y = rsty then
+                        y <= to_unsigned(0, y);
+                    else
+                        y <= y + 1;
+                    end if;
+                else
+                    x <= x + 1;
+                end if;
+            end if;
+
+        end if;
+
+        if rst = '1' then
+            x <= to_unsigned(rstx, x);
+            y <= to_unsigned(rsty, y);
+        end if;
+    end process;
+
     process(all)
     begin
         d_us <= unsigned(d);
@@ -94,27 +118,29 @@ begin
         maxy <= dp_us(y_bit-1 downto 0) when dmg = '1' and dp_us(y_bit - 1 downto 0) > maxy1 else maxy1;
     end process;
 
-    process(clk)
+    process(clk, rst)
     begin
         if rising_edge(clk) then
-            if clr = '1' then
-                d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
-                d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
-                d(2*y_bit - 1 downto y_bit) <= (others => '1');
-                d(y_bit-1 downto 0) <= (others => '0');
-            else
-                d(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(minx);
-                d(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(maxx);
-                d(2*y_bit - 1 downto y_bit) <= std_logic_vector(miny);
-                d(y_bit-1 downto 0) <= std_logic_vector(maxy);
+            if datavalid = '1' then
+                if clr = '1' then
+                    d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
+                    d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
+                    d(2*y_bit - 1 downto y_bit) <= (others => '1');
+                    d(y_bit-1 downto 0) <= (others => '0');
+                else
+                    d(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(minx);
+                    d(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(maxx);
+                    d(2*y_bit - 1 downto y_bit) <= std_logic_vector(miny);
+                    d(y_bit-1 downto 0) <= std_logic_vector(maxy);
+                end if;
             end if;
+        end if;
 
-            if rst = '1' then
-                d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
-                d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
-                d(2*y_bit - 1 downto y_bit) <= (others => '1');
-                d(y_bit-1 downto 0) <= (others => '0');
-            end if;
+        if rst = '1' then
+            d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
+            d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
+            d(2*y_bit - 1 downto y_bit) <= (others => '1');
+            d(y_bit-1 downto 0) <= (others => '0');
         end if;
     end process;
 end;
