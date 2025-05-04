@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the list of .eqy files
-EQY_FILES="holes_filler.eqy equivalence_resolver.eqy feature_accumulator.eqy row_buf.eqy window.eqy table_reader.eqy"
-EQY_PARAMS="-j 12"
+EQY_FILES="holes_filler.eqy equivalence_resolver.eqy feature_accumulator.eqy row_buf.eqy window.eqy table_reader.eqy linkruncca.eqy"
+EQY_PARAMS="-j 6"
 
 # Counter for failed runs
 fail_count=0

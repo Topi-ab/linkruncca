@@ -1,0 +1,39 @@
+[options]
+splitnets off
+
+[gold]
+plugin -i slang
+read_verilog ../../../verilog/equivalence_resolver.v
+read_verilog ../../../verilog/feature_accumulator.v
+read_verilog ../../../verilog/holes_filler.v
+read_verilog ../../../verilog/row_buf.v
+read_verilog ../../../verilog/table_ram.v
+read_verilog ../../../verilog/table_reader.v
+read_verilog ../../../verilog/window.v
+read_verilog ../../../verilog/LinkRunCCA.v
+prep -top LinkRunCCA
+memory
+
+[gate]
+plugin -i ghdl
+ghdl --std=08 ../../vhdl_equivalence_resolver.vhdl \
+../../vhdl_feature_accumulator.vhdl \
+../../vhdl_holes_filler.vhdl \
+../../vhdl_row_buf.vhdl \
+../../vhdl_table_ram.vhdl \
+../../vhdl_table_reader.vhdl \
+../../vhdl_window.vhdl \
+../../vhdl_linkruncca.vhdl -e vhdl_linkruncca
+rename vhdl_linkruncca LinkRunCCA
+prep -top LinkRunCCA
+memory
+
+[strategy sby]
+use sby
+depth 2
+# engine smtbmc boolector
+engine smtbmc bitwuzla
+
+# [strategy sat]
+# use sat
+# depth 2
