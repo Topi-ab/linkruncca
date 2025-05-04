@@ -39,18 +39,18 @@ use ieee.numeric_std.all;
 entity vhdl_table_reader is
     generic(
         address_bit: positive := 9;
-        data_bit: positive := 8
+        data_bit: positive := 38
     );
     port(
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        a: in std_logic;
-        b: in std_logic;
+        A: in std_logic;
+        B: in std_logic;
         r1: in std_logic;
         r2: in std_logic;
-        o: in std_logic;
-        hcn: in std_logic;
+        O: in std_logic;
+        HCN: in std_logic;
         d_we: in std_logic;
         d_waddr: in unsigned(address_bit-1 downto 0);
         h_rdata: in unsigned(address_bit-1 downto 0);
@@ -82,7 +82,7 @@ architecture rtl of vhdl_table_reader is
 
     signal dcn: std_logic;
 begin
-    process(clk)
+    process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
@@ -91,11 +91,11 @@ begin
                     pc <= pc + 1;
                 end if;
             end if;
+        end if;
 
-            if rst = '1' then
-                pc <= (others => '0');
-                p <= (others => '0');
-            end if;
+        if rst = '1' then
+            pc <= (others => '0');
+            p <= (others => '0');
         end if;
     end process;
 
@@ -119,7 +119,7 @@ begin
         dp <= d_rdata when a = '0' and b = '1' else rdp;
     end process;
 
-    process(clk)
+    process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
@@ -133,22 +133,21 @@ begin
                     fp <= '0' when t_raddr = p else '1';
                     np <= n_rdata;
                     fn <= '1' when n_rdata = p else '0';
-                end if;
-                if o then
+                elsif o = '1' then
                     rtp <= t_wdata;
                     fp <= '1';
                     hp <= h_wdata;
                 end if;
             end if;
+        end if;
 
-            if rst = '1' then
-                np <= (others => '0');
-                hp <= (others => '0');
-                fp <= '0';
-                fn <= '0';
-                rtp <= (others => '0');
-                rdp <= (others => '0');
-            end if;
+        if rst = '1' then
+            np <= (others => '0');
+            hp <= (others => '0');
+            fp <= '0';
+            fn <= '0';
+            rtp <= (others => '0');
+            rdp <= (others => '0');
         end if;
     end process;
 end;
