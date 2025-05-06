@@ -1,0 +1,25 @@
+[options]
+splitnets off
+
+[gold]
+plugin -i slang
+read_verilog ../../../verilog/window.v
+prep -top window
+async2sync
+
+[gate]
+plugin -i ghdl
+ghdl --std=08 ../../vhdl_window.vhdl -e vhdl_window
+rename vhdl_window window
+prep -top window
+async2sync
+
+[strategy sby]
+use sby
+depth 5
+engine smtbmc boolector
+
+[strategy sat]
+use sat
+depth 55
+

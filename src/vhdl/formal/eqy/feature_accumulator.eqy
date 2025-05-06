@@ -1,0 +1,24 @@
+[options]
+splitnets off
+
+[gold]
+plugin -i slang
+read_verilog ../../../verilog/feature_accumulator.v
+chparam -set data_bit 36 feature_accumulator
+prep -top feature_accumulator
+
+[gate]
+plugin -i ghdl
+ghdl --std=08 -gdata_bit=36 ../../vhdl_feature_accumulator.vhdl -e vhdl_feature_accumulator
+rename vhdl_feature_accumulator feature_accumulator
+prep -top feature_accumulator
+
+# [match DMG]
+# gate-match dmg
+
+# [collect *]
+
+[strategy sby]
+use sby
+depth 2
+engine smtbmc boolector
