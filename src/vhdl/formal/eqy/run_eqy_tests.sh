@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# If we do not detect the /Dockerfile file, assume we are on host, and rerun inside Docker
+if [[ ! -f /Dockerfile ]]; then
+    exec docker run --rm -it \
+        -v "$PWD/../../..:$PWD/../../.." \
+        -w "$PWD" \
+        -u "$(id -u):$(id -g)" \
+        anybytes/yosys \
+        ./$(basename "$0") "$@"
+fi
+
 # Define the list of .eqy files
 EQY_FILES="holes_filler.eqy equivalence_resolver.eqy feature_accumulator.eqy row_buf.eqy window.eqy table_reader.eqy linkruncca.eqy"
 EQY_PARAMS="-j 6"
