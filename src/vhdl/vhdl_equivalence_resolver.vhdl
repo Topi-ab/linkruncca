@@ -36,6 +36,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity vhdl_equivalence_resolver is
     generic(
         address_bit: positive := 9;
@@ -53,10 +55,10 @@ entity vhdl_equivalence_resolver is
         hp: in unsigned(address_bit-1 downto 0);
         np: in unsigned(address_bit-1 downto 0);
         tp: in unsigned(address_bit-1 downto 0);
-        dp: in std_logic_vector(data_bit-1 downto 0);
+        dp: in linkruncca_feature_t;
         fp: in std_logic;
         fn: in std_logic;
-        dd: in std_logic_vector(data_bit-1 downto 0);
+        dd: in linkruncca_feature_t;
         h_we: out std_logic;
         t_we: out std_logic;
         n_we: out std_logic;
@@ -68,7 +70,7 @@ entity vhdl_equivalence_resolver is
         h_wdata: out unsigned(address_bit-1 downto 0);
         t_wdata: out unsigned(address_bit-1 downto 0);
         n_wdata: out unsigned(address_bit-1 downto 0);
-        d_wdata: out std_logic_vector(data_bit-1 downto 0);
+        d_wdata: out linkruncca_feature_t;
         HCN: out std_logic;
         DAC: out std_logic;
         DMG: out std_logic;
@@ -135,7 +137,7 @@ begin
         
         d_we <= '0';
         d_waddr <= (others => '0');
-        d_wdata <= (others => '0');
+        d_wdata <= linkruncca_feature_empty_val;
 
         eoc <= '0';
         hbf <= '0';

@@ -37,6 +37,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity vhdl_linkruncca is
     generic(
         imwidth: integer := 130;
@@ -53,7 +55,7 @@ entity vhdl_linkruncca is
         datavalid: in std_logic;
         pix_in: in std_logic;
         datavalid_out: out std_logic;
-box_out: out std_logic_vector(data_bit - 1 downto 0)
+        box_out: out std_logic_vector(data_bit - 1 downto 0)
     );
 end;
 
@@ -74,8 +76,8 @@ architecture rtl of vhdl_linkruncca is
     signal t_rdata: unsigned(address_bit - 1 downto 0);
     signal d_raddr: unsigned(address_bit - 1 downto 0);
     signal d_waddr: unsigned(address_bit - 1 downto 0);
-    signal d_rdata: std_logic_vector(data_bit - 1 downto 0); 
-    SIGNAL d_wdata: std_logic_vector(data_bit - 1 downto 0);
+    signal d_rdata: linkruncca_feature_t;
+    signal d_wdata: linkruncca_feature_t;
     signal n_we: std_logic;
     signal h_we: std_logic;
     signal t_we: std_logic;
@@ -100,8 +102,8 @@ architecture rtl of vhdl_linkruncca is
     signal hp: unsigned(address_bit - 1 downto 0);
     signal tp: unsigned(address_bit - 1 downto 0);
     signal np: unsigned(address_bit - 1 downto 0);
-    signal dd: std_logic_vector(data_bit - 1 downto 0);
-    signal dp: std_logic_vector(data_bit - 1 downto 0);
+    signal dd: linkruncca_feature_t;
+    signal dp: linkruncca_feature_t;
     signal left: std_logic;
     signal hr1: std_logic;
     signal hf_out: std_logic;
@@ -109,7 +111,7 @@ architecture rtl of vhdl_linkruncca is
 begin
 
     -- Table RAMs
-    Next_Table: entity work.vhdl_table_ram
+    Next_Table: entity work.vhdl_table_ram_add
         generic map(
             data_width => address_bit, 
             address_width => address_bit
@@ -123,7 +125,7 @@ begin
             unsigned(q) => n_rdata
       );
 
-    Head_Table: entity work.vhdl_table_ram
+    Head_Table: entity work.vhdl_table_ram_add
         generic map(
             data_width => address_bit,
             address_width => address_bit
@@ -137,7 +139,7 @@ begin
             unsigned(q) => h_rdata
         );
 
-    Tail_Table: entity work.vhdl_table_ram
+    Tail_Table: entity work.vhdl_table_ram_add
         generic map(
             data_width => address_bit,
             address_width => address_bit
@@ -151,7 +153,7 @@ begin
             unsigned(q) => t_rdata
         );
 
-    Data_Table: entity work.vhdl_table_ram
+    Data_Table: entity work.vhdl_table_ram_data
         generic map(
             data_width => data_bit,
             address_width => address_bit
@@ -322,7 +324,11 @@ begin
         if rising_edge(clk) then
             if datavalid = '1' then
                 datavalid_out <= '0';
-                box_out <= dp;
+                box_out(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(dp.x_left);
+                box_out(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
+                box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
+                box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
+                
                 if EOC = '1' then
                    datavalid_out <= '1';
                 end if;

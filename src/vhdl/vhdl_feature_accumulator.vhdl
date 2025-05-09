@@ -58,8 +58,8 @@ entity vhdl_feature_accumulator is
         DAC: in std_logic;
         DMG: in std_logic;
         CLR: in std_logic;
-        dp: in std_logic_vector(data_bit-1 downto 0);
-        d: out std_logic_vector(data_bit-1 downto 0)
+        dp: in linkruncca_feature_t;
+        d: out linkruncca_feature_t
     );
 end;
 
@@ -67,18 +67,7 @@ architecture rtl of vhdl_feature_accumulator is
     signal x: unsigned(x_bit-1 downto 0);
     signal y: unsigned(y_bit-1 downto 0);
 
-    signal minx: unsigned(x_bit-1 downto 0);
-    signal maxx: unsigned(x_bit-1 downto 0);
-    signal minx1: unsigned(x_bit-1 downto 0);
-    signal maxx1: unsigned(x_bit-1 downto 0);
-
-    signal miny: unsigned(y_bit-1 downto 0);
-    signal maxy: unsigned(y_bit-1 downto 0);
-    signal miny1: unsigned(y_bit-1 downto 0);
-    signal maxy1: unsigned(y_bit-1 downto 0);
-
-    signal d_us: unsigned(data_bit-1 downto 0);
-    signal dp_us: unsigned(data_bit-1 downto 0);
+    signal next_label_data: linkruncca_feature_t;
 begin
     process(clk, rst)
     begin
@@ -111,23 +100,14 @@ begin
         variable label_data_old: linkruncca_feature_t;
         variable label_data_new: linkruncca_feature_t;
     begin
-        d_us <= unsigned(d);
-        dp_us <= unsigned(dp);
-
         pix_data.x := x;
         pix_data.y := y;
 
         label_data_pix := linkruncca_feature_collect(pix_data);
 
-        label_data_old.x_left := dp_us(data_bit-1 downto data_bit - x_bit);
-        label_data_old.x_right := dp_us(data_bit - x_bit - 1 downto 2*y_bit);
-        label_data_old.y_top := dp_us(2*y_bit - 1 downto y_bit);
-        label_data_old.y_bottom := dp_us(y_bit-1 downto 0);
+        label_data_old := dp;
 
-        label_data_current.x_left := d_us(data_bit-1 downto data_bit - x_bit);
-        label_data_current.x_right := d_us(data_bit - x_bit - 1 downto 2*y_bit);
-        label_data_current.y_top := d_us(2*y_bit - 1 downto y_bit);
-        label_data_current.y_bottom := d_us(y_bit-1 downto 0);
+        label_data_current := d;
 
         label_data_new := label_data_current;
 
@@ -146,21 +126,15 @@ begin
         if rst = '1' then
             label_data_new := linkruncca_feature_empty_val;
         end if;
-        
-        minx <= label_data_new.x_left;
-        maxx <= label_data_new.x_right;
-        miny <= label_data_new.y_top;
-        maxy <= label_data_new.y_bottom;
+
+        next_label_data <= label_data_new;
     end process;
 
     process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
-                d(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(minx);
-                d(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(maxx);
-                d(2*y_bit - 1 downto y_bit) <= std_logic_vector(miny);
-                d(y_bit-1 downto 0) <= std_logic_vector(maxy);
+                d <= next_label_data;
             end if;
         end if;
     end process;

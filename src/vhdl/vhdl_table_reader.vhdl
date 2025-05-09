@@ -36,6 +36,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity vhdl_table_reader is
     generic(
         address_bit: positive := 9;
@@ -58,8 +60,8 @@ entity vhdl_table_reader is
         n_rdata: in unsigned(address_bit-1 downto 0);
         h_wdata: in unsigned(address_bit-1 downto 0);
         t_wdata: in unsigned(address_bit-1 downto 0);
-        d: in std_logic_vector(data_bit-1 downto 0);
-        d_rdata: in std_logic_vector(data_bit-1 downto 0);
+        d: in linkruncca_feature_t;
+        d_rdata: in linkruncca_feature_t;
         n_raddr: out unsigned(address_bit-1 downto 0);
         h_raddr: out unsigned(address_bit-1 downto 0);
         t_raddr: out unsigned(address_bit-1 downto 0);
@@ -68,7 +70,7 @@ entity vhdl_table_reader is
         hp: out unsigned(address_bit-1 downto 0);
         np: out unsigned(address_bit-1 downto 0);
         tp: out unsigned(address_bit-1 downto 0);
-        dp: out std_logic_vector(data_bit-1 downto 0);
+        dp: out linkruncca_feature_t;
         fp: out std_logic;
         fn: out std_logic
     );
@@ -76,7 +78,7 @@ end;
 
 architecture rtl of vhdl_table_reader is
     signal rtp: unsigned(address_bit-1 downto 0);
-    signal rdp: std_logic_vector(data_bit-1 downto 0);
+    signal rdp: linkruncca_feature_t;
 
     signal pc: unsigned(address_bit-1 downto 0);
 
@@ -147,7 +149,7 @@ begin
             fp <= '0';
             fn <= '0';
             rtp <= (others => '0');
-            rdp <= (others => '0');
+            rdp <= linkruncca_feature_empty_val;
         end if;
     end process;
 end;

@@ -82,9 +82,6 @@ architecture tb of tb_linkruncca is
             uniform(s1, s2, rnd);
         end loop;
 
-        -- report "a.image_number: " & integer'image(a.image_number);
-        -- report "s1 - s2: " & integer'image(s1) & " - " & integer'image(s2);
-
         uniform(s1, s2, rnd);
         if rnd < a.mode_param_1 then
             r.hard_pixel := '1';

@@ -13,20 +13,24 @@ foreach item [glob -nocomplain -directory $proj_dir *] {
 create_project $proj_name $proj_dir -part $fpga_part
 
 # Add VHDL files:
+add_files ../vhdl/vhdl_linkruncca_pkg.vhdl
 add_files ../vhdl/vhdl_equivalence_resolver.vhdl
 add_files ../vhdl/vhdl_feature_accumulator.vhdl
 add_files ../vhdl/vhdl_holes_filler.vhdl
 add_files ../vhdl/vhdl_row_buf.vhdl
-add_files ../vhdl/vhdl_table_ram.vhdl
+add_files ../vhdl/vhdl_table_ram_add.vhdl
+add_files ../vhdl/vhdl_table_ram_data.vhdl
 add_files ../vhdl/vhdl_table_reader.vhdl
 add_files ../vhdl/vhdl_window.vhdl
 add_files ../vhdl/vhdl_linkruncca.vhdl
 
+set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_linkruncca_pkg.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_equivalence_resolver.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_feature_accumulator.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_holes_filler.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_row_buf.vhdl]
-set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_table_ram.vhdl]
+set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_table_ram_add.vhdl]
+set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_table_ram_data.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_table_reader.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_window.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_linkruncca.vhdl]
