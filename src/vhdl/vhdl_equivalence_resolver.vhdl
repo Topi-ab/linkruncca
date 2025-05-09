@@ -40,8 +40,7 @@ use work.vhdl_linkruncca_pkg.all;
 
 entity vhdl_equivalence_resolver is
     generic(
-        address_bit: positive := 9;
-        data_bit: positive := 38
+        address_bit: positive := 9
     );
     port(
         clk: in std_logic;

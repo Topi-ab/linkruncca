@@ -46,16 +46,15 @@ entity vhdl_linkruncca is
         x_bit: integer := integer(ceil(log2(real(imwidth))));
         y_bit: integer := integer(ceil(log2(real(imheight))));
         address_bit: integer := x_bit - 1;
-        data_bit: integer := 2 * (x_bit + y_bit);
         latency: integer := 3
     );
     port(
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        pix_in: in std_logic;
+        pix_in: in linkruncca_collect_t;
         datavalid_out: out std_logic;
-        box_out: out std_logic_vector(data_bit - 1 downto 0)
+        box_out: out std_logic_vector(box_bits - 1 downto 0)
     );
 end;
 
@@ -155,7 +154,6 @@ begin
 
     Data_Table: entity work.vhdl_table_ram_data
         generic map(
-            data_width => data_bit,
             address_width => address_bit
         )
         port map(
@@ -173,7 +171,7 @@ begin
             clk => clk,
             rst => rst,
             datavalid => datavalid,
-            pix_in_current => pix_in,
+            pix_in_current => pix_in.in_label,
             pix_in_previous => hr1,
             left => left,
             pix_out => hf_out
@@ -219,8 +217,7 @@ begin
     -- Table Reader
     TR: entity work.vhdl_table_reader
         generic map(
-            address_bit => address_bit,
-            data_bit => data_bit
+            address_bit => address_bit
         )
         port map(
             clk => clk,
@@ -257,8 +254,7 @@ begin
     -- Equivalence Resolver
     ES: entity work.vhdl_equivalence_resolver
         generic map(
-            address_bit => address_bit,
-            data_bit => data_bit
+            address_bit => address_bit
         )
         port map(
             clk => clk,
@@ -304,13 +300,13 @@ begin
             x_bit => x_bit,
             y_bit => y_bit,
             address_bit => address_bit,
-            data_bit => data_bit,
             latency => latency
        )
         port map(
             clk => clk, 
             rst => rst, 
             datavalid => datavalid,
+            pix_in => pix_in,
             DAC => DAC, 
             DMG => DMG, 
             CLR => CLR, 
@@ -324,8 +320,8 @@ begin
         if rising_edge(clk) then
             if datavalid = '1' then
                 datavalid_out <= '0';
-                box_out(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(dp.x_left);
-                box_out(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
+                box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
+                box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
                 box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
                 box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
                 

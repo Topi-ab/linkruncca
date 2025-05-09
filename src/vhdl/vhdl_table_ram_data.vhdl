@@ -40,17 +40,14 @@ use work.vhdl_linkruncca_pkg.all;
 
 entity vhdl_table_ram_data is
     generic(
-        data_width: positive := 8;
         address_width: positive := 10
     );
     port(
         clk: in std_logic;
         we: in std_logic;
         write_addr: in unsigned(address_width-1 downto 0);
-        -- data: in std_logic_vector(data_width-1 downto 0);
         data: in linkruncca_feature_t;
         read_addr: in unsigned(address_width-1 downto 0);
-        -- q: out std_logic_vector(data_width-1 downto 0)
         q: out linkruncca_feature_t
     );
 end;

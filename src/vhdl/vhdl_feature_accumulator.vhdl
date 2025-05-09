@@ -45,7 +45,6 @@ entity vhdl_feature_accumulator is
         x_bit: positive := 9;
         y_bit: positive := 9;
         address_bit: positive := 8;
-        data_bit: positive := 38;
         latency: natural := 3;
         rstx: positive := imwidth - latency;
         rsty: positive := imheight - 1;
@@ -55,6 +54,7 @@ entity vhdl_feature_accumulator is
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
+        pix_in: in linkruncca_collect_t;
         DAC: in std_logic;
         DMG: in std_logic;
         CLR: in std_logic;
@@ -100,6 +100,8 @@ begin
         variable label_data_old: linkruncca_feature_t;
         variable label_data_new: linkruncca_feature_t;
     begin
+        pix_data := pix_in;
+        
         pix_data.x := x;
         pix_data.y := y;
 
