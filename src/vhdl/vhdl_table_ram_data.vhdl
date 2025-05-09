@@ -3,7 +3,7 @@ Transcoded from original verilog to VHDL-2008.
 
 Author: J.W Tang
 Email: jaytang1987@hotmail.com
-Module: vhdl_holes_filler
+Module: vhdl_table_ram
 Date: 2016-04-24
 
 Copyright (C) 2016 J.W. Tang
@@ -38,47 +38,37 @@ use ieee.numeric_std.all;
 
 use work.vhdl_linkruncca_pkg.all;
 
-entity vhdl_holes_filler is
+entity vhdl_table_ram_data is
+    generic(
+        address_width: positive := 10
+    );
     port(
         clk: in std_logic;
-        rst: in std_logic;
-        datavalid: in std_logic;
-        pix_in_current: in std_logic;
-        pix_in_previous: in std_logic;
-        left: out std_logic;
-        pix_out: out std_logic
+        we: in std_logic;
+        write_addr: in unsigned(address_width-1 downto 0);
+        data: in linkruncca_feature_t;
+        read_addr: in unsigned(address_width-1 downto 0);
+        q: out linkruncca_feature_t
     );
 end;
 
-architecture rtl of vhdl_holes_filler is
-    signal top: std_logic;
-    signal x: std_logic;
-    signal right: std_logic;
+architecture rtl of vhdl_table_ram_data is
+    type ram_t is array(0 to 2**address_width-1) of linkruncca_feature_t;
+    signal ram: ram_t;
+    signal read_addr_reg: unsigned(address_width-1 downto 0);
 begin
     process(clk)
     begin
         if rising_edge(clk) then
-            if datavalid = '1' then
-                top <= pix_in_previous;
-                left <= x;
-                x <= right;
-                right <= pix_in_current;
+            read_addr_reg <= read_addr;
+            if we = '1' then
+                ram(to_integer(write_addr)) <= data;
             end if;
-        end if;
-
-        if rst = '1' then
-            top <= '0';
-            left <= '0';
-            x <= '0';
-            right <= '0';
         end if;
     end process;
 
     process(all)
     begin
-        pix_out <= x;
-        if top = '1' and (left = '1' or right = '1') then
-            pix_out <= '1';
-        end if;
+        q <= ram(to_integer(read_addr_reg));
     end process;
 end;

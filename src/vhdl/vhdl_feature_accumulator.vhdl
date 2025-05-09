@@ -36,6 +36,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity vhdl_feature_accumulator is
     generic(
         imwidth: positive := 512;
@@ -43,7 +45,6 @@ entity vhdl_feature_accumulator is
         x_bit: positive := 9;
         y_bit: positive := 9;
         address_bit: positive := 8;
-        data_bit: positive := 38;
         latency: natural := 3;
         rstx: positive := imwidth - latency;
         rsty: positive := imheight - 1;
@@ -53,11 +54,12 @@ entity vhdl_feature_accumulator is
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
+        pix_in: in linkruncca_collect_t;
         DAC: in std_logic;
         DMG: in std_logic;
         CLR: in std_logic;
-        dp: in std_logic_vector(data_bit-1 downto 0);
-        d: out std_logic_vector(data_bit-1 downto 0)
+        dp: in linkruncca_feature_t;
+        d: out linkruncca_feature_t
     );
 end;
 
@@ -65,18 +67,7 @@ architecture rtl of vhdl_feature_accumulator is
     signal x: unsigned(x_bit-1 downto 0);
     signal y: unsigned(y_bit-1 downto 0);
 
-    signal minx: unsigned(x_bit-1 downto 0);
-    signal maxx: unsigned(x_bit-1 downto 0);
-    signal minx1: unsigned(x_bit-1 downto 0);
-    signal maxx1: unsigned(x_bit-1 downto 0);
-
-    signal miny: unsigned(y_bit-1 downto 0);
-    signal maxy: unsigned(y_bit-1 downto 0);
-    signal miny1: unsigned(y_bit-1 downto 0);
-    signal maxy1: unsigned(y_bit-1 downto 0);
-
-    signal d_us: unsigned(data_bit-1 downto 0);
-    signal dp_us: unsigned(data_bit-1 downto 0);
+    signal next_label_data: linkruncca_feature_t;
 begin
     process(clk, rst)
     begin
@@ -103,44 +94,50 @@ begin
     end process;
 
     process(all)
+        variable pix_data: linkruncca_collect_t;
+        variable label_data_current: linkruncca_feature_t;
+        variable label_data_pix: linkruncca_feature_t;
+        variable label_data_old: linkruncca_feature_t;
+        variable label_data_new: linkruncca_feature_t;
     begin
-        d_us <= unsigned(d);
-        dp_us <= unsigned(dp);
+        pix_data := pix_in;
+        
+        pix_data.x := x;
+        pix_data.y := y;
 
-        minx1 <= x when dac = '1' and (x < d_us(data_bit-1 downto data_bit - x_bit)) else d_us(data_bit - 1 downto data_bit - x_bit);
-        maxx1 <= x when dac = '1' and (x > d_us(data_bit - x_bit - 1 downto 2*y_bit)) else d_us(data_bit - x_bit - 1 downto 2*y_bit);
-        miny1 <= y when dac = '1' and (y < d_us(2*y_bit - 1 downto y_bit)) else d_us(2*y_bit - 1 downto y_bit);
-        maxy1 <= y when dac = '1' and (y > d_us(y_bit-1 downto 0)) else d_us(y_bit-1 downto 0);
+        label_data_pix := linkruncca_feature_collect(pix_data);
 
-        minx <= dp_us(data_bit-1 downto data_bit-x_bit) when dmg = '1' and dp_us(data_bit - 1 downto data_bit - x_bit) < minx1 else minx1;
-        maxx <= dp_us(data_bit-x_bit - 1 downto 2*y_bit) when dmg = '1' and dp_us(data_bit - x_bit - 1 downto 2*y_bit) > maxx1 else maxx1;
-        miny <= dp_us(2*y_bit - 1 downto y_bit) when dmg = '1' and dp_us(2*y_bit - 1 downto y_bit) < miny1 else miny1;
-        maxy <= dp_us(y_bit-1 downto 0) when dmg = '1' and dp_us(y_bit - 1 downto 0) > maxy1 else maxy1;
+        label_data_old := dp;
+
+        label_data_current := d;
+
+        label_data_new := label_data_current;
+
+        if dac = '1' then
+            label_data_new := linkruncca_feature_merge(label_data_new, label_data_pix);
+        end if;
+
+        if dmg = '1' then
+            label_data_new := linkruncca_feature_merge(label_data_new, label_data_old);
+        end if;
+
+        if clr = '1' then
+            label_data_new := linkruncca_feature_empty_val;
+        end if;
+
+        if rst = '1' then
+            label_data_new := linkruncca_feature_empty_val;
+        end if;
+
+        next_label_data <= label_data_new;
     end process;
 
     process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
-                if clr = '1' then
-                    d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
-                    d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
-                    d(2*y_bit - 1 downto y_bit) <= (others => '1');
-                    d(y_bit-1 downto 0) <= (others => '0');
-                else
-                    d(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(minx);
-                    d(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(maxx);
-                    d(2*y_bit - 1 downto y_bit) <= std_logic_vector(miny);
-                    d(y_bit-1 downto 0) <= std_logic_vector(maxy);
-                end if;
+                d <= next_label_data;
             end if;
-        end if;
-
-        if rst = '1' then
-            d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
-            d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
-            d(2*y_bit - 1 downto y_bit) <= (others => '1');
-            d(y_bit-1 downto 0) <= (others => '0');
         end if;
     end process;
 end;

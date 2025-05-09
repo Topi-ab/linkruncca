@@ -37,23 +37,24 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity vhdl_linkruncca is
     generic(
-        imwidth: integer := 512;
-        imheight: integer := 512;
+        imwidth: integer := 130;
+        imheight: integer := 130;
         x_bit: integer := integer(ceil(log2(real(imwidth))));
         y_bit: integer := integer(ceil(log2(real(imheight))));
         address_bit: integer := x_bit - 1;
-        data_bit: integer := 2 * (x_bit + y_bit);
         latency: integer := 3
     );
     port(
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        pix_in: in std_logic;
+        pix_in: in linkruncca_collect_t;
         datavalid_out: out std_logic;
-box_out: out std_logic_vector(data_bit - 1 downto 0)
+        box_out: out std_logic_vector(box_bits - 1 downto 0)
     );
 end;
 
@@ -74,8 +75,8 @@ architecture rtl of vhdl_linkruncca is
     signal t_rdata: unsigned(address_bit - 1 downto 0);
     signal d_raddr: unsigned(address_bit - 1 downto 0);
     signal d_waddr: unsigned(address_bit - 1 downto 0);
-    signal d_rdata: std_logic_vector(data_bit - 1 downto 0); 
-    SIGNAL d_wdata: std_logic_vector(data_bit - 1 downto 0);
+    signal d_rdata: linkruncca_feature_t;
+    signal d_wdata: linkruncca_feature_t;
     signal n_we: std_logic;
     signal h_we: std_logic;
     signal t_we: std_logic;
@@ -100,8 +101,8 @@ architecture rtl of vhdl_linkruncca is
     signal hp: unsigned(address_bit - 1 downto 0);
     signal tp: unsigned(address_bit - 1 downto 0);
     signal np: unsigned(address_bit - 1 downto 0);
-    signal dd: std_logic_vector(data_bit - 1 downto 0);
-    signal dp: std_logic_vector(data_bit - 1 downto 0);
+    signal dd: linkruncca_feature_t;
+    signal dp: linkruncca_feature_t;
     signal left: std_logic;
     signal hr1: std_logic;
     signal hf_out: std_logic;
@@ -109,7 +110,7 @@ architecture rtl of vhdl_linkruncca is
 begin
 
     -- Table RAMs
-    Next_Table: entity work.vhdl_table_ram
+    Next_Table: entity work.vhdl_table_ram_add
         generic map(
             data_width => address_bit, 
             address_width => address_bit
@@ -123,7 +124,7 @@ begin
             unsigned(q) => n_rdata
       );
 
-    Head_Table: entity work.vhdl_table_ram
+    Head_Table: entity work.vhdl_table_ram_add
         generic map(
             data_width => address_bit,
             address_width => address_bit
@@ -137,7 +138,7 @@ begin
             unsigned(q) => h_rdata
         );
 
-    Tail_Table: entity work.vhdl_table_ram
+    Tail_Table: entity work.vhdl_table_ram_add
         generic map(
             data_width => address_bit,
             address_width => address_bit
@@ -151,9 +152,8 @@ begin
             unsigned(q) => t_rdata
         );
 
-    Data_Table: entity work.vhdl_table_ram
+    Data_Table: entity work.vhdl_table_ram_data
         generic map(
-            data_width => data_bit,
             address_width => address_bit
         )
         port map(
@@ -171,7 +171,7 @@ begin
             clk => clk,
             rst => rst,
             datavalid => datavalid,
-            pix_in_current => pix_in,
+            pix_in_current => pix_in.in_label,
             pix_in_previous => hr1,
             left => left,
             pix_out => hf_out
@@ -217,8 +217,7 @@ begin
     -- Table Reader
     TR: entity work.vhdl_table_reader
         generic map(
-            address_bit => address_bit,
-            data_bit => data_bit
+            address_bit => address_bit
         )
         port map(
             clk => clk,
@@ -255,8 +254,7 @@ begin
     -- Equivalence Resolver
     ES: entity work.vhdl_equivalence_resolver
         generic map(
-            address_bit => address_bit,
-            data_bit => data_bit
+            address_bit => address_bit
         )
         port map(
             clk => clk,
@@ -302,13 +300,13 @@ begin
             x_bit => x_bit,
             y_bit => y_bit,
             address_bit => address_bit,
-            data_bit => data_bit,
             latency => latency
        )
         port map(
             clk => clk, 
             rst => rst, 
             datavalid => datavalid,
+            pix_in => pix_in,
             DAC => DAC, 
             DMG => DMG, 
             CLR => CLR, 
@@ -322,7 +320,11 @@ begin
         if rising_edge(clk) then
             if datavalid = '1' then
                 datavalid_out <= '0';
-                box_out <= dp;
+                box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
+                box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
+                box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
+                box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
+                
                 if EOC = '1' then
                    datavalid_out <= '1';
                 end if;

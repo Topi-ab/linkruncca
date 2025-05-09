@@ -5,11 +5,13 @@ use ieee.math_real.all;
 use ieee.math_complex.all;
 use std.env.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity tb_linkruncca is
     generic(
-        X_SIZE: positive := 512;
-        Y_SIZE: positive := 512;
-        MAX_IMG: positive := 10;
+        X_SIZE: positive := 130;
+        Y_SIZE: positive := 130;
+        MAX_IMG: positive := 100;
         MODE: integer := 0;
         MODE_PARAM_1: real := 0.25;
         MODE_PARAM_2: real := 0.6
@@ -82,9 +84,6 @@ architecture tb of tb_linkruncca is
             uniform(s1, s2, rnd);
         end loop;
 
-        -- report "a.image_number: " & integer'image(a.image_number);
-        -- report "s1 - s2: " & integer'image(s1) & " - " & integer'image(s2);
-
         uniform(s1, s2, rnd);
         if rnd < a.mode_param_1 then
             r.hard_pixel := '1';
@@ -100,6 +99,7 @@ architecture tb of tb_linkruncca is
 
     signal dut_feed_valid: std_logic;
     signal dut_feed_pix: std_logic;
+    signal dut_feed_pix_data: linkruncca_collect_t;
 
     signal dut_res_valid: std_logic;
     signal dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
@@ -128,6 +128,14 @@ begin
         end loop;
         sreset <= '0';
         wait;
+    end process;
+
+    process(all)
+    begin
+        dut_feed_pix_data.in_label <= dut_feed_pix;
+        dut_feed_pix_data.has_red <= '0';
+        dut_feed_pix_data.has_green <= '1';
+        dut_feed_pix_data.has_blue <= '0';
     end process;
 
     pixel_gen_pr: process
@@ -160,9 +168,14 @@ begin
                     dut_feed_pix <= pix.hard_pixel;
                     wait until rising_edge(clk);
                 end loop;
+                dut_feed_valid <= '0';
+                wait until rising_edge(clk);
+                dut_feed_valid <= '1';
             end loop;
             dut_feed_valid <= '0';
-            wait until rising_edge(clk);
+            for i in 1 to 15 loop
+                wait until rising_edge(clk);
+            end loop;
             dut_feed_valid <= '1';
         end loop;
 
@@ -182,14 +195,13 @@ begin
             x_bit => dut_x_bit,
             y_bit => dut_y_bit,
             address_bit => dut_address_bit,
-            data_bit => dut_data_bit,
             latency => dut_latency
         )
         port map(
             clk => clk,
             rst => sreset,
             datavalid => dut_feed_valid,
-            pix_in => dut_feed_pix,
+            pix_in => dut_feed_pix_data,
             datavalid_out => dut_res_valid,
             box_out => dut_res_box
         );
