@@ -48,12 +48,12 @@ entity vhdl_linkruncca is
         latency: integer := 3
     );
     port(
-      clk: in std_logic;
-      rst: in std_logic;
-      datavalid: in std_logic;
-      pix_in: in std_logic;
-      datavalid_out: out std_logic;
-      box_out: out std_logic_vector(data_bit - 1 downto 0)
+        clk: in std_logic;
+        rst: in std_logic;
+        datavalid: in std_logic;
+        pix_in: in std_logic;
+        datavalid_out: out std_logic;
+box_out: out std_logic_vector(data_bit - 1 downto 0)
     );
 end;
 
@@ -169,6 +169,7 @@ begin
     HF: entity work.vhdl_holes_filler
         port map(
             clk => clk,
+            rst => rst,
             datavalid => datavalid,
             pix_in_current => pix_in,
             pix_in_previous => hr1,
@@ -191,6 +192,7 @@ begin
     WIN: entity work.vhdl_window
         port map(
             clk => clk,
+            rst => rst,
             datavalid => datavalid,
             pix_in_current => hf_out,
             pix_in_previous => r1,
@@ -317,9 +319,7 @@ begin
     -- Output register process
     process(clk, rst)
     begin
-        if rst = '1' then
-            datavalid_out <= '0';
-        elsif rising_edge(clk) then
+        if rising_edge(clk) then
             if datavalid = '1' then
                 datavalid_out <= '0';
                 box_out <= dp;
@@ -327,6 +327,11 @@ begin
                    datavalid_out <= '1';
                 end if;
             end if;
+        end if;
+
+        if rst = '1' then
+            datavalid_out <= '0';
+            box_out <= (others => '0');
         end if;
     end process;
 end;

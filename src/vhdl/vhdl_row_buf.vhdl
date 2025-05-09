@@ -50,7 +50,7 @@ entity vhdl_row_buf is
 end;
 
 architecture rtl of vhdl_row_buf is
-    signal r: std_logic_vector(length-1 downto 0);
+    signal r: std_logic_vector(length-1 downto 0) := (others => '0');
 begin
     process(clk)
     begin
