@@ -36,6 +36,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_pkg.all;
+
 entity vhdl_feature_accumulator is
     generic(
         imwidth: positive := 512;
@@ -103,44 +105,63 @@ begin
     end process;
 
     process(all)
+        variable pix_data: linkruncca_collect_t;
+        variable label_data_current: linkruncca_feature_t;
+        variable label_data_pix: linkruncca_feature_t;
+        variable label_data_old: linkruncca_feature_t;
+        variable label_data_new: linkruncca_feature_t;
     begin
         d_us <= unsigned(d);
         dp_us <= unsigned(dp);
 
-        minx1 <= x when dac = '1' and (x < d_us(data_bit-1 downto data_bit - x_bit)) else d_us(data_bit - 1 downto data_bit - x_bit);
-        maxx1 <= x when dac = '1' and (x > d_us(data_bit - x_bit - 1 downto 2*y_bit)) else d_us(data_bit - x_bit - 1 downto 2*y_bit);
-        miny1 <= y when dac = '1' and (y < d_us(2*y_bit - 1 downto y_bit)) else d_us(2*y_bit - 1 downto y_bit);
-        maxy1 <= y when dac = '1' and (y > d_us(y_bit-1 downto 0)) else d_us(y_bit-1 downto 0);
+        pix_data.x := x;
+        pix_data.y := y;
 
-        minx <= dp_us(data_bit-1 downto data_bit-x_bit) when dmg = '1' and dp_us(data_bit - 1 downto data_bit - x_bit) < minx1 else minx1;
-        maxx <= dp_us(data_bit-x_bit - 1 downto 2*y_bit) when dmg = '1' and dp_us(data_bit - x_bit - 1 downto 2*y_bit) > maxx1 else maxx1;
-        miny <= dp_us(2*y_bit - 1 downto y_bit) when dmg = '1' and dp_us(2*y_bit - 1 downto y_bit) < miny1 else miny1;
-        maxy <= dp_us(y_bit-1 downto 0) when dmg = '1' and dp_us(y_bit - 1 downto 0) > maxy1 else maxy1;
+        label_data_pix := linkruncca_feature_collect(pix_data);
+
+        label_data_old.x_left := dp_us(data_bit-1 downto data_bit - x_bit);
+        label_data_old.x_right := dp_us(data_bit - x_bit - 1 downto 2*y_bit);
+        label_data_old.y_top := dp_us(2*y_bit - 1 downto y_bit);
+        label_data_old.y_bottom := dp_us(y_bit-1 downto 0);
+
+        label_data_current.x_left := d_us(data_bit-1 downto data_bit - x_bit);
+        label_data_current.x_right := d_us(data_bit - x_bit - 1 downto 2*y_bit);
+        label_data_current.y_top := d_us(2*y_bit - 1 downto y_bit);
+        label_data_current.y_bottom := d_us(y_bit-1 downto 0);
+
+        label_data_new := label_data_current;
+
+        if dac = '1' then
+            label_data_new := linkruncca_feature_merge(label_data_new, label_data_pix);
+        end if;
+
+        if dmg = '1' then
+            label_data_new := linkruncca_feature_merge(label_data_new, label_data_old);
+        end if;
+
+        if clr = '1' then
+            label_data_new := linkruncca_feature_empty_val;
+        end if;
+
+        if rst = '1' then
+            label_data_new := linkruncca_feature_empty_val;
+        end if;
+        
+        minx <= label_data_new.x_left;
+        maxx <= label_data_new.x_right;
+        miny <= label_data_new.y_top;
+        maxy <= label_data_new.y_bottom;
     end process;
 
     process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
-                if clr = '1' then
-                    d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
-                    d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
-                    d(2*y_bit - 1 downto y_bit) <= (others => '1');
-                    d(y_bit-1 downto 0) <= (others => '0');
-                else
-                    d(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(minx);
-                    d(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(maxx);
-                    d(2*y_bit - 1 downto y_bit) <= std_logic_vector(miny);
-                    d(y_bit-1 downto 0) <= std_logic_vector(maxy);
-                end if;
+                d(data_bit - 1 downto data_bit - x_bit) <= std_logic_vector(minx);
+                d(data_bit - x_bit - 1 downto 2*y_bit) <= std_logic_vector(maxx);
+                d(2*y_bit - 1 downto y_bit) <= std_logic_vector(miny);
+                d(y_bit-1 downto 0) <= std_logic_vector(maxy);
             end if;
-        end if;
-
-        if rst = '1' then
-            d(data_bit - 1 downto data_bit - x_bit) <= (others => '1');
-            d(data_bit - x_bit - 1 downto 2*y_bit) <= (others => '0');
-            d(2*y_bit - 1 downto y_bit) <= (others => '1');
-            d(y_bit-1 downto 0) <= (others => '0');
         end if;
     end process;
 end;

@@ -39,8 +39,8 @@ use ieee.math_real.all;
 
 entity vhdl_linkruncca is
     generic(
-        imwidth: integer := 512;
-        imheight: integer := 512;
+        imwidth: integer := 130;
+        imheight: integer := 130;
         x_bit: integer := integer(ceil(log2(real(imwidth))));
         y_bit: integer := integer(ceil(log2(real(imheight))));
         address_bit: integer := x_bit - 1;

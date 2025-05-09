@@ -7,8 +7,8 @@ use std.env.all;
 
 entity tb_linkruncca is
     generic(
-        X_SIZE: positive := 512;
-        Y_SIZE: positive := 512;
+        X_SIZE: positive := 130;
+        Y_SIZE: positive := 130;
         MAX_IMG: positive := 10;
         MODE: integer := 0;
         MODE_PARAM_1: real := 0.25;
@@ -160,9 +160,14 @@ begin
                     dut_feed_pix <= pix.hard_pixel;
                     wait until rising_edge(clk);
                 end loop;
+                dut_feed_valid <= '0';
+                wait until rising_edge(clk);
+                dut_feed_valid <= '1';
             end loop;
             dut_feed_valid <= '0';
-            wait until rising_edge(clk);
+            for i in 1 to 15 loop
+                wait until rising_edge(clk);
+            end loop;
             dut_feed_valid <= '1';
         end loop;
 
