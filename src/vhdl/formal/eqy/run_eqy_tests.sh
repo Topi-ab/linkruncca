@@ -15,7 +15,7 @@ EQY_FILES="holes_filler.eqy equivalence_resolver.eqy feature_accumulator.eqy row
 EQY_PARAMS="-j 6"
 
 # Counter for failed runs
-fail_count=0
+fail_count=0    
 
 # Use the argument if provided, else use the default list
 if [[ -n "$1" ]]; then

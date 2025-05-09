@@ -54,6 +54,7 @@ end;
 architecture rtl of vhdl_table_ram is
     type ram_t is array(0 to 2**address_width-1) of std_logic_vector(data_width-1 downto 0);
     signal ram: ram_t;
+    -- signal ram: ram_t := (others => (others => '0'));
     signal read_addr_reg: unsigned(address_width-1 downto 0);
 begin
     process(clk)

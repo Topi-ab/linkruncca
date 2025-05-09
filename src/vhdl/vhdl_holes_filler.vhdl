@@ -39,6 +39,7 @@ use ieee.numeric_std.all;
 entity vhdl_holes_filler is
     port(
         clk: in std_logic;
+        rst: in std_logic;
         datavalid: in std_logic;
         pix_in_current: in std_logic;
         pix_in_previous: in std_logic;
@@ -61,6 +62,13 @@ begin
                 x <= right;
                 right <= pix_in_current;
             end if;
+        end if;
+
+        if rst = '1' then
+            top <= '0';
+            left <= '0';
+            x <= '0';
+            right <= '0';
         end if;
     end process;
 

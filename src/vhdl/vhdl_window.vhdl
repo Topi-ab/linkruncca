@@ -39,6 +39,7 @@ use ieee.numeric_std.all;
 entity vhdl_window is
     port(
         clk: in std_logic;
+        rst: in std_logic;
         datavalid: in std_logic;
         pix_in_current: in std_logic;
         pix_in_previous: in std_logic;
@@ -60,6 +61,13 @@ begin
                 c <= d;
                 d <= pix_in_current;
             end if;
+        end if;
+
+        if rst = '1' then
+            a <= '0';
+            b <= '0';
+            c <= '0';
+            d <= '0';
         end if;
     end process;
 end;
