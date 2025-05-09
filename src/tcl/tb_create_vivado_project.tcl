@@ -47,7 +47,7 @@ add_files ../verilog/window.v
 add_files ../verilog/linkruncca.v
 
 # Add constraints:
-#add_files -fileset constrs_1 ../timing.sdc
+add_files -fileset constrs_1 timing.sdc
 
 # Set top module:
 set_property top $top_module [current_fileset]
@@ -56,10 +56,5 @@ set_property top $top_module [current_fileset]
 add_files -fileset sim_1 ../../sim/vhdl/tb_linkruncca.vhdl
 set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/tb_linkruncca.vhdl]
 
-# Save the project
+# Save the project:
 # save_project_as $proj_name $proj_dir
-
-
-
-
-#set_property top_file C:/work/linkruncca/src/vhdl/vhdl_table_ram.vhdl [current_fileset]
