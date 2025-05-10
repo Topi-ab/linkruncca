@@ -67,7 +67,12 @@ architecture rtl of vhdl_feature_accumulator is
     signal x: unsigned(x_bit-1 downto 0);
     signal y: unsigned(y_bit-1 downto 0);
 
-    signal next_label_data: linkruncca_feature_t;
+    signal dmg_d1: std_logic;
+    signal clr_d1: std_logic;
+    signal label_data_old_d0: linkruncca_feature_t;
+    signal label_data_old_d1: linkruncca_feature_t;
+    signal label_data_new_d0: linkruncca_feature_t;
+    signal label_data_new_d1: linkruncca_feature_t;
 begin
     process(clk, rst)
     begin
@@ -108,6 +113,7 @@ begin
         label_data_pix := linkruncca_feature_collect(pix_data);
 
         label_data_old := dp;
+        label_data_old_d0 <= label_data_old;
 
         label_data_current := d;
 
@@ -117,7 +123,7 @@ begin
             label_data_new := linkruncca_feature_merge(label_data_new, label_data_pix);
         end if;
 
-        if dmg = '1' then
+        /*if dmg = '1' then
             label_data_new := linkruncca_feature_merge(label_data_new, label_data_old);
         end if;
 
@@ -127,17 +133,40 @@ begin
 
         if rst = '1' then
             label_data_new := linkruncca_feature_empty_val;
-        end if;
+        end if;*/
 
-        next_label_data <= label_data_new;
+        label_data_new_d0 <= label_data_new;
     end process;
 
     process(clk, rst)
+        variable new_d: linkruncca_feature_t;
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
-                d <= next_label_data;
+                dmg_d1 <= dmg;
+                clr_d1 <= clr;
+                label_data_old_d1 <= label_data_old_d0;
+                label_data_new_d1 <= label_data_new_d0;
             end if;
         end if;
+    end process;
+
+    process(all)
+        variable new_d: linkruncca_feature_t;
+    begin
+        new_d := label_data_new_d1;
+        if dmg_d1 = '1' then
+            new_d := linkruncca_feature_merge(new_d, label_data_old_d1);
+        end if;
+
+        if clr_d1 = '1' then
+            new_d := linkruncca_feature_empty_val;
+        end if;
+
+        if rst = '1' then
+            new_d := linkruncca_feature_empty_val;
+        end if;
+
+        d <= new_d;
     end process;
 end;
