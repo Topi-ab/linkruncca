@@ -24,11 +24,11 @@ flowchart LR
     mem --> async_1
     async_1 --> mux
     async_1 --> async_2
-    async_2 --> async_3
+    async_2 -->|dp| async_3
     async_3 --> async_4
     async_4 --> dff1
     dff1 --> async_2
-    dff1 --> mux
+    dff1 -->|d| mux
 ```
 
 ## Optimized design.
@@ -52,11 +52,11 @@ flowchart LR
     mux --> mem
     mem --> async_1
     async_1 --> mux
-    async_1 --> async_3
-    async_3 --> dff1
-    dff1 --> async_2
-    async_2 --> dff2
-    dff2 --> async_2
-    async_2 --> async_4
-    async_4 --> mux
+    async_1 -->|dp| async_3
+    async_3 -->|d_pix| dff1
+    dff1 -->|d_pix_d1| async_2
+    async_2 -->|d_current| dff2
+    dff2 -->|d_acc| async_2
+    async_2 -->|d_current| async_4
+    async_4 -->|d| mux
 ```
