@@ -55,7 +55,7 @@ flowchart LR
     async_1 -->|dp| async_3
     async_3 -->|d_pix| dff1
     dff1 -->|d_pix_d1| async_2
-    async_2 -->|d_current| dff2
+    async_4 -->|d| dff2
     dff2 -->|d_acc| async_2
     async_2 -->|d_current| async_4
     async_4 -->|d| mux
