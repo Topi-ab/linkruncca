@@ -111,6 +111,11 @@ architecture tb of tb_linkruncca is
     signal error_res_valid_sticky: std_logic := '0';
     signal error_res_box: std_logic := '0';
     signal error_res_box_sticky: std_logic := '0';
+
+    -- alias verilog_fa_d: std_logic_vector(31 downto 0) is <<signal .verilog_dut.FA.d>>;
+
+    -- alias verilog_fa_d is << signal verilog_dut.d: std_logic_vector(31 downto 0) >>;
+    -- alias vhdl_fa_d is << signal vhdl_dut.FA.d: linkruncca_feature_t >>;
 begin
     clk_pr: process
     begin
@@ -244,4 +249,6 @@ begin
                 end if;
             end if;
     end process;
+
+
 end;

@@ -4,13 +4,20 @@ splitnets off
 [gold]
 plugin -i slang
 read_verilog ../../../verilog/feature_accumulator.v
-chparam -set data_bit 36 feature_accumulator
+chparam -set data_bit 32 feature_accumulator
+chparam -set imwidth 130 feature_accumulator
+chparam -set imheight 130 feature_accumulator
+chparam -set x_bit 8 feature_accumulator
+chparam -set y_bit 8 feature_accumulator
+chparam -set address_bit 7 feature_accumulator
 prep -top feature_accumulator
 
 [gate]
 plugin -i ghdl
-ghdl --std=08 -gdata_bit=36 ../../vhdl_feature_accumulator.vhdl -e vhdl_feature_accumulator
-rename vhdl_feature_accumulator feature_accumulator
+ghdl --std=08 -gdata_bit=32 -gimwidth=130 -gimheight=130 -gx_bit=8 \
+    -gy_bit=8 -gaddress_bit=7 \
+    ../../vhdl_linkruncca_pkg.vhdl ../../vhdl_feature_accumulator.vhdl eqy_feature_accumulator_adapter.vhdl -e eqy_feature_accumulator_adapter
+rename eqy_feature_accumulator_adapter feature_accumulator
 prep -top feature_accumulator
 
 # [match DMG]
@@ -20,5 +27,9 @@ prep -top feature_accumulator
 
 [strategy sby]
 use sby
-depth 2
+depth 20
 engine smtbmc boolector
+
+[strategy sat]
+use sat
+depth 20
