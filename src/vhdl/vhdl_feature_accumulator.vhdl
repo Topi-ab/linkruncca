@@ -70,14 +70,9 @@ architecture rtl of vhdl_feature_accumulator is
     signal dac_d1: std_logic;
     signal dmg_d1: std_logic;
     signal clr_d1: std_logic;
-    signal label_data_old_d0: linkruncca_feature_t;
-    signal label_data_old_d1: linkruncca_feature_t;
-    signal label_data_new_d0: linkruncca_feature_t;
-    signal label_data_new_d1: linkruncca_feature_t;
 
     signal d_pix: linkruncca_feature_t;
     signal d_pix_d1: linkruncca_feature_t;
-    signal d_current: linkruncca_feature_t;
     signal d_acc: linkruncca_feature_t;
 begin
     process(clk, rst)
