@@ -67,12 +67,18 @@ architecture rtl of vhdl_feature_accumulator is
     signal x: unsigned(x_bit-1 downto 0);
     signal y: unsigned(y_bit-1 downto 0);
 
+    signal dac_d1: std_logic;
     signal dmg_d1: std_logic;
     signal clr_d1: std_logic;
     signal label_data_old_d0: linkruncca_feature_t;
     signal label_data_old_d1: linkruncca_feature_t;
     signal label_data_new_d0: linkruncca_feature_t;
     signal label_data_new_d1: linkruncca_feature_t;
+
+    signal d_pix: linkruncca_feature_t;
+    signal d_pix_d1: linkruncca_feature_t;
+    signal d_current: linkruncca_feature_t;
+    signal d_acc: linkruncca_feature_t;
 begin
     process(clk, rst)
     begin
@@ -98,75 +104,82 @@ begin
         end if;
     end process;
 
-    process(all)
+    input_async_pr: process(all)
         variable pix_data: linkruncca_collect_t;
-        variable label_data_current: linkruncca_feature_t;
         variable label_data_pix: linkruncca_feature_t;
-        variable label_data_old: linkruncca_feature_t;
-        variable label_data_new: linkruncca_feature_t;
     begin
         pix_data := pix_in;
-        
         pix_data.x := x;
         pix_data.y := y;
-
         label_data_pix := linkruncca_feature_collect(pix_data);
 
-        label_data_old := dp;
-        label_data_old_d0 <= label_data_old;
-
-        label_data_current := d;
-
-        label_data_new := label_data_current;
-
-        if dac = '1' then
-            label_data_new := linkruncca_feature_merge(label_data_new, label_data_pix);
-        end if;
-
-        /*if dmg = '1' then
-            label_data_new := linkruncca_feature_merge(label_data_new, label_data_old);
-        end if;
-
-        if clr = '1' then
-            label_data_new := linkruncca_feature_empty_val;
-        end if;
-
-        if rst = '1' then
-            label_data_new := linkruncca_feature_empty_val;
-        end if;*/
-
-        label_data_new_d0 <= label_data_new;
+        d_pix <= linkruncca_feature_empty_val;
+        case std_logic_vector'(dmg & dac) is
+            when "00" =>
+                null;
+            when "01" =>
+                d_pix <= label_data_pix;
+            when "10" =>
+                d_pix <= dp;
+            when "11" =>
+                d_pix <= linkruncca_feature_merge(dp, label_data_pix);
+            when others =>
+                null;
+        end case;
     end process;
 
-    process(clk, rst)
-        variable new_d: linkruncca_feature_t;
+    pre_acc_sync_pr: process(clk, rst)
     begin
         if rising_edge(clk) then
             if datavalid = '1' then
+                dac_d1 <= dac;
                 dmg_d1 <= dmg;
                 clr_d1 <= clr;
-                label_data_old_d1 <= label_data_old_d0;
-                label_data_new_d1 <= label_data_new_d0;
+                d_pix_d1 <= d_pix;
+            end if;
+
+            if rst = '1' then
+                dac_d1 <= '0';
+                dmg_d1 <= '0';
+                clr_d1 <= '0';
+                d_pix_d1 <= linkruncca_feature_empty_val;
             end if;
         end if;
     end process;
 
-    process(all)
-        variable new_d: linkruncca_feature_t;
+    pre_acc_async_pr: process(all)
     begin
-        new_d := label_data_new_d1;
-        if dmg_d1 = '1' then
-            new_d := linkruncca_feature_merge(new_d, label_data_old_d1);
-        end if;
+        d <= d_acc;
+        case std_logic_vector'(dmg_d1 & dac_d1) is
+            when "00" =>
+                null;
+            when "01" =>
+                d <= linkruncca_feature_merge(d_acc, d_pix_d1);
+            when "10" =>
+                d <= linkruncca_feature_merge(d_acc, d_pix_d1);
+            when "11" =>
+                d <= linkruncca_feature_merge(d_acc, d_pix_d1);
+            when others =>
+                null;
+        end case;
 
         if clr_d1 = '1' then
-            new_d := linkruncca_feature_empty_val;
+            d <= linkruncca_feature_empty_val;
         end if;
 
         if rst = '1' then
-            new_d := linkruncca_feature_empty_val;
+            d <= linkruncca_feature_empty_val;
+        end if;
+    end process;
+
+    acc_sync_pr: process(clk, rst)
+    begin
+        if rising_edge(clk) then
+            d_acc <= d;
         end if;
 
-        d <= new_d;
+        if rst = '1' then
+            d_acc <= linkruncca_feature_empty_val;
+        end if;
     end process;
 end;

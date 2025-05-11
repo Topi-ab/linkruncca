@@ -1,0 +1,22 @@
+[tasks]
+bmc
+
+[options]
+bmc: mode bmc
+bmc: depth 20
+
+[engines]
+smtbmc boolector
+
+[script]
+plugin -i ghdl
+ghdl --std=08 vhdl_linkruncca_pkg.vhdl vhdl_feature_accumulator.vhdl formal_fa_comparator.vhdl -e formal_fa_comparator
+read_verilog feature_accumulator.v
+prep -top formal_fa_comparator
+
+
+[files]
+../../vhdl_linkruncca_pkg.vhdl
+../../vhdl_feature_accumulator.vhdl
+../../../verilog/feature_accumulator.v
+formal_fa_comparator.vhdl
