@@ -8,7 +8,7 @@ The above example (white = background, no object there, non-white is foreground,
 
 User can customize the statistics to be collected, as long as the statistics is
 - information per pixel, which is sent into the linkruncca with the binary pixel (foreground vs background).
-- can be accumulated over one ore more pixels.
+- can be accumulated over one or more pixels.
 E.g. bounding box, center of mass, min/max of hue/saturation/value, etc.
 
 ## Usage
@@ -30,3 +30,26 @@ Top level entity is vhdl_linkruncca[.vhdl]
 - datavalid_out => output valid telling if box_out is valid during current clock cycle
 - box_out => collected statistics objects
 
+### User statistics
+
+vhdl_linkruncca_pkg.vhdl describes the user defined statistics. User needs to define
+
+**linkruncca_collect_t**
+
+This data structure collects information on per pixel basis. Everything which is to be collected to statistics, needs to be presented here as information for _this pixel_.
+
+**linkruncca_feature_t**
+
+This is the information collection data structure. This record holds all variables which are to be accumulated over single object in the image.
+
+**linkruncca_feature_empty_val**
+
+This function needs to return feature statistics which is empty (zero pixels accumulated to it). E.g. bounding box x_min value set to the highest possible number and x_max set to the smallest possible numer.
+
+**linkruncca_feature_collect**
+
+This function converts single pixel information (parameter a) to a feature statistics.
+
+**linkruncca_feature_merge**
+
+This function merges two statistics together and returns a single statistics.
