@@ -11,4 +11,22 @@ User can customize the statistics to be collected, as long as the statistics is
 - can be accumulated over one ore more pixels.
 E.g. bounding box, center of mass, min/max of hue/saturation/value, etc.
 
+## Usage
 Top level entity is vhdl_linkruncca[.vhdl]
+
+### Configurable parameters
+- imwidth => width of incoming image in pixels
+- imheight => height of incoming image in pixels
+- x_bit => number of bits to represent x-coordinate
+- y_bit => number of bits to represent y-coordinate
+- address_bit => number of bits to represent address to internal memories
+- latency => Latency of ...
+
+### Interface signals
+- clk => pixel clock input
+- rst => active high reset input
+- datavalid => valid input signal to state if pix_in is fed in during current clock cycle (AXI stream style)
+- pix_in => pixel data input
+- datavalid_out => output valid telling if box_out is valid during current clock cycle
+- box_out => collected statistics objects
+
