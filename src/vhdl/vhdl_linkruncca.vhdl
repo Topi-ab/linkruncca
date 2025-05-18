@@ -54,7 +54,13 @@ entity vhdl_linkruncca is
         datavalid: in std_logic;
         pix_in: in linkruncca_collect_t;
         datavalid_out: out std_logic;
-        box_out: out std_logic_vector(box_bits - 1 downto 0)
+        box_out: out std_logic_vector(box_bits - 1 downto 0);
+
+        formal_datavalid: out std_logic;
+        formal_n_we: out std_logic;
+        formal_h_we: out std_logic;
+        formal_t_we: out std_logic;
+        formal_d_we: out std_logic
     );
 end;
 
@@ -107,7 +113,15 @@ architecture rtl of vhdl_linkruncca is
     signal hr1: std_logic;
     signal hf_out: std_logic;
 
+    signal datavalid_d1: std_logic;
+    signal eoc_d1: std_logic;
+    signal dp_d1: linkruncca_feature_t;
 begin
+    formal_datavalid <= datavalid;
+    formal_n_we <= n_we;
+    formal_h_we <= h_we;
+    formal_t_we <= t_we;
+    formal_d_we <= d_we;
 
     -- Table RAMs
     Next_Table: entity work.vhdl_table_ram_add
@@ -318,20 +332,25 @@ begin
     process(clk, rst)
     begin
         if rising_edge(clk) then
-            if datavalid = '1' then
+            datavalid_d1 <= datavalid;
+            dp_d1 <= dp;
+            eoc_d1 <= eoc;
+
+            if datavalid_d1 = '1' then
                 datavalid_out <= '0';
-                box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
-                box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
-                box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
-                box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
+                box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp_d1.x_left);
+                box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp_d1.x_right);
+                box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp_d1.y_top);
+                box_out(y_bit-1 downto 0) <= std_logic_vector(dp_d1.y_bottom);
                 
-                if EOC = '1' then
+                if eoc_d1 = '1' then
                    datavalid_out <= '1';
                 end if;
             end if;
         end if;
 
         if rst = '1' then
+            datavalid_d1 <= '0';
             datavalid_out <= '0';
             box_out <= (others => '0');
         end if;

@@ -1,2 +1,2 @@
-parameter imwidth=512;
-parameter imheight=512;
+parameter imwidth=130;
+parameter imheight=130;

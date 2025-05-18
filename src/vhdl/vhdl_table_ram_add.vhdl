@@ -54,8 +54,13 @@ entity vhdl_table_ram_add is
 end;
 
 architecture rtl of vhdl_table_ram_add is
+    attribute ram_style: string;
+
     type ram_t is array(0 to 2**address_width-1) of std_logic_vector(data_width-1 downto 0);
+    
     signal ram: ram_t;
+    attribute ram_style of ram: signal is "block";
+    
     signal read_addr_reg: unsigned(address_width-1 downto 0);
 begin
     process(clk)
