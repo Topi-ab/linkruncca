@@ -11,6 +11,12 @@ User can customize the statistics to be collected, as long as the statistics is
 - can be accumulated over one or more pixels.
 E.g. bounding box, center of mass, min/max of hue/saturation/value, etc.
 
+## 8- vs 4-connectivity
+
+4-connectivity considers pixels sharing a borderline between them belonging to the same object (green pixels above are 4-connected to the red pixel, but yellow pixels are not).
+
+8-connectivity considers pixels sharing a borderline, or a corner between belonging to the same object (green and yellow pixels above are 8-connected to the red pixel).
+
 ## Usage
 Top level entity is vhdl_linkruncca[.vhdl]
 
