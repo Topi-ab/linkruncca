@@ -53,8 +53,8 @@ entity vhdl_linkruncca is
         rst: in std_logic;
         datavalid: in std_logic;
         pix_in: in linkruncca_collect_t;
-        datavalid_out: out std_logic;
-        box_out: out std_logic_vector(box_bits - 1 downto 0)
+        res_valid_out: out std_logic;
+        res_data_out: out linkruncca_feature_t
     );
 end;
 
@@ -318,22 +318,19 @@ begin
     process(clk, rst)
     begin
         if rising_edge(clk) then
+            res_valid_out <= '0';
+
             if datavalid = '1' then
-                datavalid_out <= '0';
-                box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
-                box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
-                box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
-                box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
-                
+                res_valid_out <= '0';
                 if EOC = '1' then
-                   datavalid_out <= '1';
+                    res_data_out <= dp;
+                    res_valid_out <= '1';
                 end if;
             end if;
         end if;
 
         if rst = '1' then
-            datavalid_out <= '0';
-            box_out <= (others => '0');
+            res_valid_out <= '0';
         end if;
     end process;
 end;

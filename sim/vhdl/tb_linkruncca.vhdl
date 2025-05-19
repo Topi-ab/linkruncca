@@ -102,10 +102,11 @@ architecture tb of tb_linkruncca is
     signal dut_feed_pix_data: linkruncca_collect_t;
 
     signal dut_res_valid: std_logic;
-    signal dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
+    signal dut_res_data: linkruncca_feature_t;
 
     signal verilog_dut_res_valid: std_logic;
     signal verilog_dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
+    signal verilog_dut_res_data: linkruncca_feature_t;
 
     signal error_res_valid: std_logic := '0';
     signal error_res_valid_sticky: std_logic := '0';
@@ -138,9 +139,6 @@ begin
     process(all)
     begin
         dut_feed_pix_data.in_label <= dut_feed_pix;
-        dut_feed_pix_data.has_red <= '0';
-        dut_feed_pix_data.has_green <= '1';
-        dut_feed_pix_data.has_blue <= '0';
     end process;
 
     pixel_gen_pr: process
@@ -207,8 +205,8 @@ begin
             rst => sreset,
             datavalid => dut_feed_valid,
             pix_in => dut_feed_pix_data,
-            datavalid_out => dut_res_valid,
-            box_out => dut_res_box
+            res_valid_out => dut_res_valid,
+            res_data_out => dut_res_data
         );
     
     verilog_dut: LinkRunCCA
@@ -230,6 +228,14 @@ begin
             box_out => verilog_dut_res_box
         );
     
+    process(all)
+    begin
+        verilog_dut_res_data.x_left <= unsigned(verilog_dut_res_box(box_bits - 1 downto box_bits - x_bits));
+        verilog_dut_res_data.x_right <= unsigned(verilog_dut_res_box(box_bits - x_bits - 1 downto 2*y_bits));
+        verilog_dut_res_data.y_top <= unsigned(verilog_dut_res_box(2*y_bits - 1 downto y_bits));
+        verilog_dut_res_data.y_bottom <= unsigned(verilog_dut_res_box(y_bits-1 downto 0));
+    end process;
+
     vhdl_verilog_compare_pr: process(clk)
     begin
         if rising_edge(clk) then
@@ -237,18 +243,16 @@ begin
             error_res_box <= '0';
 
             if sreset = '0' then
-                if dut_res_valid /= verilog_dut_res_valid then
+                if dut_res_valid = '1' and verilog_dut_res_valid = '0' then
                     error_res_valid <= '1';
                     error_res_valid_sticky <= '1';
                 elsif dut_res_valid = '1' then
-                    if dut_res_box /= verilog_dut_res_box then
+                    if dut_res_data /= verilog_dut_res_data then
                         error_res_box <= '1';
                         error_res_box_sticky <= '1';
                     end if;
                 end if;
-                end if;
             end if;
+        end if;
     end process;
-
-
 end;
