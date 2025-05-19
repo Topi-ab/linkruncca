@@ -27,8 +27,8 @@ Top level entity is vhdl_linkruncca[.vhdl]
 - rst => active high reset input
 - datavalid => valid input signal to state if pix_in is fed in during current clock cycle (AXI stream style)
 - pix_in => pixel data input
-- datavalid_out => output valid telling if box_out is valid during current clock cycle
-- box_out => collected statistics objects
+- res_valid_out => output valid telling if res_data_out is valid during current clock cycle
+- res_data_out => collected statistics objects
 
 ### User statistics
 
