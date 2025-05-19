@@ -23,10 +23,6 @@ Top level entity is vhdl_linkruncca[.vhdl]
 ### Configurable parameters
 - imwidth => width of incoming image in pixels
 - imheight => height of incoming image in pixels
-- x_bit => number of bits to represent x-coordinate
-- y_bit => number of bits to represent y-coordinate
-- address_bit => number of bits to represent address to internal memories
-- latency => Latency of ...
 
 ### Interface signals
 - clk => pixel clock input
@@ -39,6 +35,10 @@ Top level entity is vhdl_linkruncca[.vhdl]
 ### User statistics
 
 vhdl_linkruncca_pkg.vhdl describes the user defined statistics. User needs to define
+
+**x_bits** and **y_bits**
+
+These define the number of bits to represent unsigned x- and y-coordinates.
 
 **linkruncca_collect_t**
 
