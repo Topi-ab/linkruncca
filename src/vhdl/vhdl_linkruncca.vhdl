@@ -294,9 +294,6 @@ begin
         generic map(
             imwidth => imwidth,
             imheight => imheight,
-            x_bit => x_bits,
-            y_bit => y_bits,
-            address_bit => mem_add_bits,
             latency => latency
        )
         port map(
