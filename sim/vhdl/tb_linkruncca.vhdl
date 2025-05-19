@@ -194,11 +194,7 @@ begin
     vhdl_dut: entity work.vhdl_linkruncca
         generic map(
             imwidth => X_SIZE,
-            imheight => Y_SIZE,
-            x_bit => dut_x_bit,
-            y_bit => dut_y_bit,
-            address_bit => dut_address_bit,
-            latency => dut_latency
+            imheight => Y_SIZE
         )
         port map(
             clk => clk,
@@ -213,9 +209,9 @@ begin
         generic map(
             imwidth => X_SIZE,
             imheight => Y_SIZE,
-            x_bit => dut_x_bit,
-            y_bit => dut_y_bit,
-            address_bit => dut_address_bit,
+            x_bit => x_bits,
+            y_bit => y_bits,
+            address_bit => mem_add_bits,
             data_bit => dut_data_bit,
             latency => dut_latency
         )
@@ -247,7 +243,10 @@ begin
                     error_res_valid <= '1';
                     error_res_valid_sticky <= '1';
                 elsif dut_res_valid = '1' then
-                    if dut_res_data /= verilog_dut_res_data then
+                    if dut_res_data.x_left /= verilog_dut_res_data.x_left or
+                      dut_res_data.x_right /= verilog_dut_res_data.x_right or
+                      dut_res_data.y_top /= verilog_dut_res_data.y_top or
+                      dut_res_data.y_bottom /= verilog_dut_res_data.y_bottom then
                         error_res_box <= '1';
                         error_res_box_sticky <= '1';
                     end if;

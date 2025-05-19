@@ -5,6 +5,9 @@ use ieee.numeric_std.all;
 package vhdl_linkruncca_pkg is
     constant x_bits: integer := 8;
     constant y_bits: integer := 8;
+    constant pix_count_bits: integer := 16;
+
+    constant mem_add_bits: integer := x_bits-1;
 
     constant box_bits: integer := 2*x_bits + 2*y_bits;
 
@@ -21,6 +24,7 @@ package vhdl_linkruncca_pkg is
         x_right: unsigned(x_bits-1 downto 0);
         y_top: unsigned(y_bits-1 downto 0);
         y_bottom: unsigned(y_bits-1 downto 0);
+        pix_count: unsigned(pix_count_bits-1 downto 0);
     end record;
 
     function linkruncca_feature_empty_val return linkruncca_feature_t;
@@ -38,6 +42,7 @@ package body vhdl_linkruncca_pkg is
         r.x_right := (others => '0');
         r.y_top := (others => '1');
         r.y_bottom := (others => '0');
+        r.pix_count := (others => '0');
 
         return r;
     end;
@@ -49,6 +54,7 @@ package body vhdl_linkruncca_pkg is
         r.x_right := a.x;
         r.y_top := a.y;
         r.y_bottom := a.y;
+        r.pix_count := to_unsigned(1, r.pix_count);
 
         return r;
     end;
@@ -65,6 +71,7 @@ package body vhdl_linkruncca_pkg is
         r.x_right := max(r.x_right, b.x_right);
         r.y_top := min(r.y_top, b.y_top);
         r.y_bottom := max(r.y_bottom, b.y_bottom);
+        r.pix_count := r.pix_count + b.pix_count;
 
         return r;
     end;
