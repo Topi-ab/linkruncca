@@ -58,6 +58,8 @@ architecture tb of tb_linkruncca is
 
     type pixel_t is record
         hard_pixel: std_logic;
+        x: natural;
+        y: natural;
     end record;
 
     function get_image_pixel(a: image_gen_t) return pixel_t is
@@ -67,6 +69,8 @@ architecture tb of tb_linkruncca is
         variable r: pixel_t;
     begin
         r.hard_pixel := '0';
+        r.x := a.x;
+        r.y := a.y;
 
         s1 := a.seed_1;
         s2 := a.seed_2;
@@ -99,9 +103,12 @@ architecture tb of tb_linkruncca is
 
     signal dut_feed_valid: std_logic;
     signal dut_feed_pix: std_logic;
+    signal dut_feed_pix_meta: pixel_t;
     signal dut_feed_pix_data: linkruncca_collect_t;
+    
 
     signal dut_res_valid: std_logic;
+    signal dut_res_feature: linkruncca_feature_t;
     signal dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
 
     signal verilog_dut_res_valid: std_logic;
@@ -141,6 +148,8 @@ begin
         dut_feed_pix_data.has_red <= '0';
         dut_feed_pix_data.has_green <= '1';
         dut_feed_pix_data.has_blue <= '0';
+        dut_feed_pix_data.x <= to_unsigned(dut_feed_pix_meta.x, dut_feed_pix_data.x);
+        dut_feed_pix_data.y <= to_unsigned(dut_feed_pix_meta.y, dut_feed_pix_data.y);
     end process;
 
     pixel_gen_pr: process
@@ -171,6 +180,7 @@ begin
                     pix_gen.x := x;
                     pix := get_image_pixel(pix_gen);
                     dut_feed_pix <= pix.hard_pixel;
+                    dut_feed_pix_meta <= pix;
                     wait until rising_edge(clk);
                 end loop;
                 dut_feed_valid <= '0';
@@ -208,8 +218,17 @@ begin
             datavalid => dut_feed_valid,
             pix_in => dut_feed_pix_data,
             datavalid_out => dut_res_valid,
-            box_out => dut_res_box
+            -- box_out => dut_res_box
+            feature_out => dut_res_feature
         );
+
+    process(all)
+    begin
+        dut_res_box(box_bits - 1 downto box_bits - dut_x_bit) <= std_logic_vector(dut_res_feature.x_left);
+        dut_res_box(box_bits - dut_x_bit - 1 downto 2*dut_y_bit) <= std_logic_vector(dut_res_feature.x_right);
+        dut_res_box(2*dut_y_bit - 1 downto dut_y_bit) <= std_logic_vector(dut_res_feature.y_top);
+        dut_res_box(dut_y_bit-1 downto 0) <= std_logic_vector(dut_res_feature.y_bottom);
+    end process;
     
     verilog_dut: LinkRunCCA
         generic map(

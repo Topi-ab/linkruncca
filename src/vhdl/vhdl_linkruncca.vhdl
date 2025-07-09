@@ -54,7 +54,8 @@ entity vhdl_linkruncca is
         datavalid: in std_logic;
         pix_in: in linkruncca_collect_t;
         datavalid_out: out std_logic;
-        box_out: out std_logic_vector(box_bits - 1 downto 0)
+        -- box_out: out std_logic_vector(box_bits - 1 downto 0)
+        feature_out: out linkruncca_feature_t
     );
 end;
 
@@ -320,11 +321,11 @@ begin
         if rising_edge(clk) then
             if datavalid = '1' then
                 datavalid_out <= '0';
-                box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
-                box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
-                box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
-                box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
-                
+                -- box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
+                -- box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
+                -- box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
+                -- box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
+                feature_out <= dp;
                 if EOC = '1' then
                    datavalid_out <= '1';
                 end if;
@@ -333,7 +334,7 @@ begin
 
         if rst = '1' then
             datavalid_out <= '0';
-            box_out <= (others => '0');
+            -- box_out <= (others => '0');
         end if;
     end process;
 end;
