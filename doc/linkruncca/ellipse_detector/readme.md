@@ -76,3 +76,12 @@ $$
 $$
 
 Note: Angles differing by ±180° represent the same axis orientation.
+
+---
+
+## Implementation reference
+
+A Python demonstration implementing these exact formulas is provided in:
+[py/ellipse_demonstrator.py](py/ellipse_demonstrator.py)
+
+It generates three sets of pixels and estimates the ellipticities and plots the results.
