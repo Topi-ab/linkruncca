@@ -40,15 +40,15 @@ set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_window.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_linkruncca.vhdl]
 
 # Add verilog files
-add_files ../verilog/cca.vh
-add_files ../verilog/equivalence_resolver.v
-add_files ../verilog/feature_accumulator.v
-add_files ../verilog/holes_filler.v
-add_files ../verilog/row_buf.v
-add_files ../verilog/table_ram.v
-add_files ../verilog/table_reader.v
-add_files ../verilog/window.v
-add_files ../verilog/linkruncca.v
+add_files -fileset sim_1 ../verilog/cca.vh
+add_files -fileset sim_1 ../verilog/equivalence_resolver.v
+add_files -fileset sim_1 ../verilog/feature_accumulator.v
+add_files -fileset sim_1 ../verilog/holes_filler.v
+add_files -fileset sim_1 ../verilog/row_buf.v
+add_files -fileset sim_1 ../verilog/table_ram.v
+add_files -fileset sim_1 ../verilog/table_reader.v
+add_files -fileset sim_1 ../verilog/window.v
+add_files -fileset sim_1 ../verilog/linkruncca.v
 
 # Add constraints:
 add_files -fileset constrs_1 timing.sdc

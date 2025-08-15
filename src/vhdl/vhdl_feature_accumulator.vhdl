@@ -42,13 +42,7 @@ entity vhdl_feature_accumulator is
     generic(
         imwidth: positive := 512;
         imheight: positive := 512;
-        x_bit: positive := 9;
-        y_bit: positive := 9;
-        address_bit: positive := 8;
-        latency: natural := 3;
-        rstx: positive := imwidth - latency;
-        rsty: positive := imheight - 1;
-        compx: positive := imwidth - 1
+        latency: natural := 3
     );
     port(
         clk: in std_logic;
@@ -64,9 +58,6 @@ entity vhdl_feature_accumulator is
 end;
 
 architecture rtl of vhdl_feature_accumulator is
-    signal x: unsigned(x_bit-1 downto 0);
-    signal y: unsigned(y_bit-1 downto 0);
-
     signal dac_d1: std_logic;
     signal dmg_d1: std_logic;
     signal clr_d1: std_logic;
@@ -75,37 +66,11 @@ architecture rtl of vhdl_feature_accumulator is
     signal d_pix_d1: linkruncca_feature_t;
     signal d_acc: linkruncca_feature_t;
 begin
-    process(clk, rst)
-    begin
-        if rising_edge(clk) then
-            if datavalid = '1' then
-                if x = compx then
-                    x <= to_unsigned(0, x);
-                    if y = rsty then
-                        y <= to_unsigned(0, y);
-                    else
-                        y <= y + 1;
-                    end if;
-                else
-                    x <= x + 1;
-                end if;
-            end if;
-
-        end if;
-
-        if rst = '1' then
-            x <= to_unsigned(rstx, x);
-            y <= to_unsigned(rsty, y);
-        end if;
-    end process;
-
     input_async_pr: process(all)
         variable pix_data: linkruncca_collect_t;
         variable label_data_pix: linkruncca_feature_t;
     begin
         pix_data := pix_in;
-        pix_data.x := x;
-        pix_data.y := y;
         label_data_pix := linkruncca_feature_collect(pix_data);
 
         d_pix <= linkruncca_feature_empty_val;

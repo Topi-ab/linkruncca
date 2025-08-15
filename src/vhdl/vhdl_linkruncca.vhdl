@@ -42,40 +42,36 @@ use work.vhdl_linkruncca_pkg.all;
 entity vhdl_linkruncca is
     generic(
         imwidth: integer := 130;
-        imheight: integer := 130;
-        x_bit: integer := integer(ceil(log2(real(imwidth))));
-        y_bit: integer := integer(ceil(log2(real(imheight))));
-        address_bit: integer := x_bit - 1;
-        latency: integer := 3
+        imheight: integer := 130
     );
     port(
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
         pix_in: in linkruncca_collect_t;
-        datavalid_out: out std_logic;
-        -- box_out: out std_logic_vector(box_bits - 1 downto 0)
-        feature_out: out linkruncca_feature_t
+        res_valid_out: out std_logic;
+        res_data_out: out linkruncca_feature_t
     );
 end;
 
 architecture rtl of vhdl_linkruncca is
+    constant latency: integer := 3;
 
     -- RAM signals
-    signal n_waddr: unsigned(address_bit - 1 downto 0);
-    signal n_wdata: unsigned(address_bit - 1 downto 0);
-    signal n_raddr: unsigned(address_bit - 1 downto 0);
-    signal n_rdata: unsigned(address_bit - 1 downto 0);
-    signal h_waddr: unsigned(address_bit - 1 downto 0);
-    signal h_wdata: unsigned(address_bit - 1 downto 0);
-    signal h_raddr: unsigned(address_bit - 1 downto 0);
-    signal h_rdata: unsigned(address_bit - 1 downto 0);
-    signal t_waddr: unsigned(address_bit - 1 downto 0);
-    signal t_wdata: unsigned(address_bit - 1 downto 0); 
-    signal t_raddr: unsigned(address_bit - 1 downto 0); 
-    signal t_rdata: unsigned(address_bit - 1 downto 0);
-    signal d_raddr: unsigned(address_bit - 1 downto 0);
-    signal d_waddr: unsigned(address_bit - 1 downto 0);
+    signal n_waddr: unsigned(mem_add_bits - 1 downto 0);
+    signal n_wdata: unsigned(mem_add_bits - 1 downto 0);
+    signal n_raddr: unsigned(mem_add_bits - 1 downto 0);
+    signal n_rdata: unsigned(mem_add_bits - 1 downto 0);
+    signal h_waddr: unsigned(mem_add_bits - 1 downto 0);
+    signal h_wdata: unsigned(mem_add_bits - 1 downto 0);
+    signal h_raddr: unsigned(mem_add_bits - 1 downto 0);
+    signal h_rdata: unsigned(mem_add_bits - 1 downto 0);
+    signal t_waddr: unsigned(mem_add_bits - 1 downto 0);
+    signal t_wdata: unsigned(mem_add_bits - 1 downto 0); 
+    signal t_raddr: unsigned(mem_add_bits - 1 downto 0); 
+    signal t_rdata: unsigned(mem_add_bits - 1 downto 0);
+    signal d_raddr: unsigned(mem_add_bits - 1 downto 0);
+    signal d_waddr: unsigned(mem_add_bits - 1 downto 0);
     signal d_rdata: linkruncca_feature_t;
     signal d_wdata: linkruncca_feature_t;
     signal n_we: std_logic;
@@ -98,23 +94,36 @@ architecture rtl of vhdl_linkruncca is
     signal DMG: std_logic;
     signal CLR: std_logic;
     signal EOC: std_logic;
-    signal p: unsigned(address_bit - 1 downto 0);
-    signal hp: unsigned(address_bit - 1 downto 0);
-    signal tp: unsigned(address_bit - 1 downto 0);
-    signal np: unsigned(address_bit - 1 downto 0);
+    signal p: unsigned(mem_add_bits - 1 downto 0);
+    signal hp: unsigned(mem_add_bits - 1 downto 0);
+    signal tp: unsigned(mem_add_bits - 1 downto 0);
+    signal np: unsigned(mem_add_bits - 1 downto 0);
     signal dd: linkruncca_feature_t;
     signal dp: linkruncca_feature_t;
     signal left: std_logic;
     signal hr1: std_logic;
     signal hf_out: std_logic;
 
+    signal pix_d1: linkruncca_collect_t;
+    signal pix_d2: linkruncca_collect_t;
+    signal pix_d3: linkruncca_collect_t;
 begin
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if datavalid = '1' then
+                pix_d1 <= pix_in;
+                pix_d2 <= pix_d1;
+                pix_d3 <= pix_d2;
+            end if;
+        end if;
+    end process;
 
     -- Table RAMs
     Next_Table: entity work.vhdl_table_ram_add
         generic map(
-            data_width => address_bit, 
-            address_width => address_bit
+            data_width => mem_add_bits, 
+            address_width => mem_add_bits
         )
         port map(
             clk => clk,
@@ -127,8 +136,8 @@ begin
 
     Head_Table: entity work.vhdl_table_ram_add
         generic map(
-            data_width => address_bit,
-            address_width => address_bit
+            data_width => mem_add_bits,
+            address_width => mem_add_bits
         )
         port map(
             clk => clk,
@@ -141,8 +150,8 @@ begin
 
     Tail_Table: entity work.vhdl_table_ram_add
         generic map(
-            data_width => address_bit,
-            address_width => address_bit
+            data_width => mem_add_bits,
+            address_width => mem_add_bits
         )
         port map(
             clk => clk,
@@ -155,7 +164,7 @@ begin
 
     Data_Table: entity work.vhdl_table_ram_data
         generic map(
-            address_width => address_bit
+            address_width => mem_add_bits
         )
         port map(
             clk => clk,
@@ -218,7 +227,7 @@ begin
     -- Table Reader
     TR: entity work.vhdl_table_reader
         generic map(
-            address_bit => address_bit
+            address_bit => mem_add_bits
         )
         port map(
             clk => clk,
@@ -255,7 +264,7 @@ begin
     -- Equivalence Resolver
     ES: entity work.vhdl_equivalence_resolver
         generic map(
-            address_bit => address_bit
+            address_bit => mem_add_bits
         )
         port map(
             clk => clk,
@@ -298,16 +307,13 @@ begin
         generic map(
             imwidth => imwidth,
             imheight => imheight,
-            x_bit => x_bit,
-            y_bit => y_bit,
-            address_bit => address_bit,
             latency => latency
        )
         port map(
             clk => clk, 
             rst => rst, 
             datavalid => datavalid,
-            pix_in => pix_in,
+            pix_in => pix_d3,
             DAC => DAC, 
             DMG => DMG, 
             CLR => CLR, 
@@ -319,22 +325,19 @@ begin
     process(clk, rst)
     begin
         if rising_edge(clk) then
+            res_valid_out <= '0';
+
             if datavalid = '1' then
-                datavalid_out <= '0';
-                -- box_out(box_bits - 1 downto box_bits - x_bit) <= std_logic_vector(dp.x_left);
-                -- box_out(box_bits - x_bit - 1 downto 2*y_bit) <= std_logic_vector(dp.x_right);
-                -- box_out(2*y_bit - 1 downto y_bit) <= std_logic_vector(dp.y_top);
-                -- box_out(y_bit-1 downto 0) <= std_logic_vector(dp.y_bottom);
-                feature_out <= dp;
+                res_valid_out <= '0';
                 if EOC = '1' then
-                   datavalid_out <= '1';
+                    res_data_out <= dp;
+                    res_valid_out <= '1';
                 end if;
             end if;
         end if;
 
         if rst = '1' then
-            datavalid_out <= '0';
-            -- box_out <= (others => '0');
+            res_valid_out <= '0';
         end if;
     end process;
 end;
