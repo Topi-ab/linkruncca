@@ -13,7 +13,7 @@ entity tb_linkruncca is
         Y_SIZE: positive := 130;
         MAX_IMG: positive := 100;
         MODE: integer := 0;
-        MODE_PARAM_1: real := 0.25;
+        MODE_PARAM_1: real := 0.125;
         MODE_PARAM_2: real := 0.6
     );
 end;
@@ -43,7 +43,7 @@ architecture tb of tb_linkruncca is
             datavalid_out: out std_logic;
             box_out: out std_logic_vector(data_bit - 1 downto 0)
         );
-    end component;
+    end component;signal valid_d1: std_logic;
 
     type image_gen_t is record
         seed_1: integer;
@@ -136,17 +136,17 @@ begin
         wait;
     end process;
 
-    process(all)
-    begin
-        dut_feed_pix_data.in_label <= dut_feed_pix;
-    end process;
+    -- process(all)
+    -- begin
+    --     dut_feed_pix_data.in_label <= dut_feed_pix;
+    -- end process;
 
     pixel_gen_pr: process
         variable pix_gen: image_gen_t;
         variable pix: pixel_t;
     
     begin
-        dut_feed_valid <= '1';
+        dut_feed_valid <= '0';
         dut_feed_pix <= '0';
 
         pix_gen.seed_1 := 12;
@@ -169,6 +169,9 @@ begin
                     pix_gen.x := x;
                     pix := get_image_pixel(pix_gen);
                     dut_feed_pix <= pix.hard_pixel;
+                    dut_feed_pix_data.in_label <= pix.hard_pixel;
+                    dut_feed_pix_data.x <= to_unsigned(x, dut_feed_pix_data.x);
+                    dut_feed_pix_data.y <= to_unsigned(y, dut_feed_pix_data.y);
                     wait until rising_edge(clk);
                 end loop;
                 dut_feed_valid <= '0';
@@ -199,7 +202,7 @@ begin
         port map(
             clk => clk,
             rst => sreset,
-            datavalid => dut_feed_valid,
+            datavalid => dut_feed_valid or sreset,
             pix_in => dut_feed_pix_data,
             res_valid_out => dut_res_valid,
             res_data_out => dut_res_data
@@ -218,7 +221,7 @@ begin
         port map(
             clk => clk,
             rst => sreset,
-            datavalid => dut_feed_valid,
+            datavalid => dut_feed_valid or sreset,
             pix_in => dut_feed_pix,
             datavalid_out => verilog_dut_res_valid,
             box_out => verilog_dut_res_box

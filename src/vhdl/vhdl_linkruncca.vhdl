@@ -104,7 +104,20 @@ architecture rtl of vhdl_linkruncca is
     signal hr1: std_logic;
     signal hf_out: std_logic;
 
+    signal pix_d1: linkruncca_collect_t;
+    signal pix_d2: linkruncca_collect_t;
+    signal pix_d3: linkruncca_collect_t;
 begin
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if datavalid = '1' then
+                pix_d1 <= pix_in;
+                pix_d2 <= pix_d1;
+                pix_d3 <= pix_d2;
+            end if;
+        end if;
+    end process;
 
     -- Table RAMs
     Next_Table: entity work.vhdl_table_ram_add
@@ -300,7 +313,7 @@ begin
             clk => clk, 
             rst => rst, 
             datavalid => datavalid,
-            pix_in => pix_in,
+            pix_in => pix_d3,
             DAC => DAC, 
             DMG => DMG, 
             CLR => CLR, 
