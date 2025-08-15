@@ -58,6 +58,8 @@ architecture tb of tb_linkruncca is
 
     type pixel_t is record
         hard_pixel: std_logic;
+        x: natural;
+        y: natural;
     end record;
 
     function get_image_pixel(a: image_gen_t) return pixel_t is
@@ -67,6 +69,8 @@ architecture tb of tb_linkruncca is
         variable r: pixel_t;
     begin
         r.hard_pixel := '0';
+        r.x := a.x;
+        r.y := a.y;
 
         s1 := a.seed_1;
         s2 := a.seed_2;
@@ -99,9 +103,12 @@ architecture tb of tb_linkruncca is
 
     signal dut_feed_valid: std_logic;
     signal dut_feed_pix: std_logic;
+    signal dut_feed_pix_meta: pixel_t;
     signal dut_feed_pix_data: linkruncca_collect_t;
+    
 
     signal dut_res_valid: std_logic;
+    signal dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
     signal dut_res_data: linkruncca_feature_t;
 
     signal verilog_dut_res_valid: std_logic;
@@ -207,6 +214,14 @@ begin
             res_valid_out => dut_res_valid,
             res_data_out => dut_res_data
         );
+
+    process(all)
+    begin
+        dut_res_box(box_bits - 1 downto box_bits - dut_x_bit) <= std_logic_vector(dut_res_data.x_left);
+        dut_res_box(box_bits - dut_x_bit - 1 downto 2*dut_y_bit) <= std_logic_vector(dut_res_data.x_right);
+        dut_res_box(2*dut_y_bit - 1 downto dut_y_bit) <= std_logic_vector(dut_res_data.y_top);
+        dut_res_box(dut_y_bit-1 downto 0) <= std_logic_vector(dut_res_data.y_bottom);
+    end process;
     
     verilog_dut: LinkRunCCA
         generic map(
