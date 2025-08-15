@@ -11,8 +11,8 @@ For each block, the following information is collected:
 - **Sum of X-Coordinates**: $\Sigma x$
 - **Sum of Y-Coordinates**: $\Sigma y$
 - **Sum of X \* Y**: $\Sigma (x y)$ of each foreground pixel
-- **Sum of X \* X**: $\Sigma (x^2)$
-- **Sum of Y \* Y**: $\Sigma (y^2)$
+- **Sum of X \* X**: $\Sigma (x^2)$ of each foreground pixel
+- **Sum of Y \* Y**: $\Sigma (y^2)$ of each foreground pixel
 - **Number of foreground pixels**: $N$
 
 These sums are computed in integer arithmetic in hardware as pixels are processed.
@@ -84,7 +84,7 @@ $$
 The major axis angle $\theta$ (in radians) relative to the +X axis is:
 
 $$
-\theta = \frac{1}{2}\,\arctan2\!\left( 2\mu_{11},\, \mu_{20} - \mu_{02} \right)
+\theta = \frac{1}{2} arctan2\left( 2\mu_{11}, \mu_{20} - \mu_{02} \right)
 $$
 
 Note: Angles differing by ±180° represent the same axis orientation.
