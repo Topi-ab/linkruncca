@@ -14,7 +14,7 @@ entity tb_linkruncca is
         -- Y_SIZE: positive := 130;
         MAX_IMG: positive := 100;
         MODE: integer := 0;
-        MODE_PARAM_1: real := 0.125;
+        MODE_PARAM_1: real := 0.225;
         MODE_PARAM_2: real := 0.6
     );
 end;

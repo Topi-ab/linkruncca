@@ -96,7 +96,19 @@ package body vhdl_linkruncca_pkg is
                 r.y_top := to_integer(a.y_top_seg1) + y_low_size;
                 r.y_bottom := to_integer(a.y_bottom_seg0);
             else
-                assert false report "seg0 nor seg1 starts from 0 y-coordinate" severity error;
+                if a.y_bottom_seg1 /= y_low_max then
+                    -- Y starts from 0 of segment 0, and continues to segment 1 but not to end of segment 1.
+                    r.y_top := 0;
+                    r.y_bottom := to_integer(a.y_bottom_seg1) + y_low_size;
+                elsif a.y_bottom_seg0 /= y_low_max then
+                    -- Y starts from 0 of segment 1, and continues to segment 0 but not to end of segment 0.
+                    r.y_top := y_low_size;
+                    r.y_bottom := to_integer(a.y_bottom_seg0) + 2*y_low_size;
+                else
+                    -- y_top/bottom covers the whole y_size range.
+                    r.y_top := 0;
+                    r.y_bottom := y_max;
+                end if;
             end if;
         end if;
 
