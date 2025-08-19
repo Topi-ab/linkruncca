@@ -8,8 +8,8 @@ use work.vhdl_linkruncca_util_pkg.all;
 package vhdl_linkruncca_pkg is
     -- USER PARAMETERS =>
 
-    constant x_size: integer := 200;
-    constant y_bits: integer := 8;
+    constant x_size: integer := 1024;
+    constant y_bits: integer := 15;
     
     -- <= USER PARAMETERS.
 
@@ -161,11 +161,11 @@ package body vhdl_linkruncca_pkg is
 
         r.x2_sum := resize(a.x*a.x, r.x2_sum);
 
-        r.ylow2_sum := resize(y_low, r.ylow2_sum);
+        r.ylow2_sum := resize(y_low*y_low, r.ylow2_sum);
         r.xylow_sum := resize(a.x*y_low, r.xylow_sum);
 
         if y_msb = '0' then
-            r.x_seg0_sum := to_unsigned(1, r.x_seg0_sum);
+            r.x_seg0_sum := resize(a.x, r.x_seg0_sum);
             r.x_seg1_sum := to_unsigned(0, r.x_seg1_sum);
             r.ylow_seg0_sum := resize(a.y, r.ylow_seg0_sum);
             r.ylow_seg1_sum := to_unsigned(0, r.ylow_seg1_sum);
@@ -173,7 +173,7 @@ package body vhdl_linkruncca_pkg is
             r.n_seg1_sum := to_unsigned(0, r.n_seg1_sum);
         else
             r.x_seg0_sum := to_unsigned(0, r.x_seg0_sum);
-            r.x_seg1_sum := to_unsigned(1, r.x_seg1_sum);
+            r.x_seg1_sum := resize(a.x, r.x_seg1_sum);
             r.ylow_seg0_sum := to_unsigned(0, r.ylow_seg0_sum);
             r.ylow_seg1_sum := resize(a.y, r.ylow_seg1_sum);
             r.n_seg0_sum := to_unsigned(0, r.n_seg0_sum);
