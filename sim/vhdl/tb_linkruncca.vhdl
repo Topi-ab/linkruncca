@@ -6,11 +6,12 @@ use ieee.math_complex.all;
 use std.env.all;
 
 use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_util_pkg.all;
 
 entity tb_linkruncca is
     generic(
-        X_SIZE: positive := 130;
-        Y_SIZE: positive := 130;
+        -- X_SIZE: positive := 130;
+        -- Y_SIZE: positive := 130;
         MAX_IMG: positive := 100;
         MODE: integer := 0;
         MODE_PARAM_1: real := 0.125;
@@ -19,11 +20,9 @@ entity tb_linkruncca is
 end;
 
 architecture tb of tb_linkruncca is
-    constant dut_x_bit: integer := integer(ceil(log2(real(X_SIZE))));
-    constant dut_y_bit: integer := integer(ceil(log2(real(Y_SIZE))));
-    constant dut_address_bit: integer := dut_x_bit - 1;
-    constant dut_data_bit: integer := 2 * (dut_x_bit + dut_y_bit);
     constant dut_latency: integer := 3;
+
+    constant box_bits: integer := 2*x_bits + 2*y_bits;
 
     component LinkRunCCA is
         generic(
@@ -108,22 +107,17 @@ architecture tb of tb_linkruncca is
     
 
     signal dut_res_valid: std_logic;
-    signal dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
     signal dut_res_data: linkruncca_feature_t;
+    signal dut_bbox_data: bbox_t;
 
     signal verilog_dut_res_valid: std_logic;
-    signal verilog_dut_res_box: std_logic_vector(dut_data_bit-1 downto 0);
-    signal verilog_dut_res_data: linkruncca_feature_t;
+    signal verilog_dut_res_box: std_logic_vector(box_bits-1 downto 0);
+    signal verilog_bbox_data: bbox_t;
 
     signal error_res_valid: std_logic := '0';
     signal error_res_valid_sticky: std_logic := '0';
     signal error_res_box: std_logic := '0';
     signal error_res_box_sticky: std_logic := '0';
-
-    -- alias verilog_fa_d: std_logic_vector(31 downto 0) is <<signal .verilog_dut.FA.d>>;
-
-    -- alias verilog_fa_d is << signal verilog_dut.d: std_logic_vector(31 downto 0) >>;
-    -- alias vhdl_fa_d is << signal vhdl_dut.FA.d: linkruncca_feature_t >>;
 begin
     clk_pr: process
     begin
@@ -136,17 +130,12 @@ begin
     rst_pr: process
     begin
         sreset <= '1';
-        for i in 1 to X_SIZE+5 loop
+        for i in 1 to x_size+5 loop
             wait until rising_edge(clk);
         end loop;
         sreset <= '0';
         wait;
     end process;
-
-    -- process(all)
-    -- begin
-    --     dut_feed_pix_data.in_label <= dut_feed_pix;
-    -- end process;
 
     pixel_gen_pr: process
         variable pix_gen: image_gen_t;
@@ -170,9 +159,9 @@ begin
         dut_feed_valid <= '1';
         for img in 0 to MAX_IMG-1 loop
             pix_gen.image_number := img;
-            for y in 0 to Y_SIZE-1 loop
+            for y in 0 to y_size-1 loop
                 pix_gen.y := y;
-                for x in 0 to X_SIZE-1 loop
+                for x in 0 to x_size-1 loop
                     pix_gen.x := x;
                     pix := get_image_pixel(pix_gen);
                     dut_feed_pix <= pix.hard_pixel;
@@ -203,8 +192,8 @@ begin
 
     vhdl_dut: entity work.vhdl_linkruncca
         generic map(
-            imwidth => X_SIZE,
-            imheight => Y_SIZE
+            imwidth => x_size,
+            imheight => y_size
         )
         port map(
             clk => clk,
@@ -217,20 +206,17 @@ begin
 
     process(all)
     begin
-        dut_res_box(box_bits - 1 downto box_bits - dut_x_bit) <= std_logic_vector(dut_res_data.x_left);
-        dut_res_box(box_bits - dut_x_bit - 1 downto 2*dut_y_bit) <= std_logic_vector(dut_res_data.x_right);
-        dut_res_box(2*dut_y_bit - 1 downto dut_y_bit) <= std_logic_vector(dut_res_data.y_top);
-        dut_res_box(dut_y_bit-1 downto 0) <= std_logic_vector(dut_res_data.y_bottom);
+        dut_bbox_data <= feature2bbox(dut_res_data);
     end process;
     
     verilog_dut: LinkRunCCA
         generic map(
-            imwidth => X_SIZE,
-            imheight => Y_SIZE,
+            imwidth => x_size,
+            imheight => y_size,
             x_bit => x_bits,
             y_bit => y_bits,
             address_bit => mem_add_bits,
-            data_bit => dut_data_bit,
+            data_bit => box_bits,
             latency => dut_latency
         )
         port map(
@@ -244,10 +230,10 @@ begin
     
     process(all)
     begin
-        verilog_dut_res_data.x_left <= unsigned(verilog_dut_res_box(box_bits - 1 downto box_bits - x_bits));
-        verilog_dut_res_data.x_right <= unsigned(verilog_dut_res_box(box_bits - x_bits - 1 downto 2*y_bits));
-        verilog_dut_res_data.y_top <= unsigned(verilog_dut_res_box(2*y_bits - 1 downto y_bits));
-        verilog_dut_res_data.y_bottom <= unsigned(verilog_dut_res_box(y_bits-1 downto 0));
+        verilog_bbox_data.x_left <= to_integer(unsigned(verilog_dut_res_box(box_bits - 1 downto box_bits - x_bits)));
+        verilog_bbox_data.x_right <= to_integer(unsigned(verilog_dut_res_box(box_bits - x_bits - 1 downto 2*y_bits)));
+        verilog_bbox_data.y_top <= to_integer(unsigned(verilog_dut_res_box(2*y_bits - 1 downto y_bits)));
+        verilog_bbox_data.y_bottom <= to_integer(unsigned(verilog_dut_res_box(y_bits-1 downto 0)));
     end process;
 
     vhdl_verilog_compare_pr: process(clk)
@@ -261,10 +247,7 @@ begin
                     error_res_valid <= '1';
                     error_res_valid_sticky <= '1';
                 elsif dut_res_valid = '1' then
-                    if dut_res_data.x_left /= verilog_dut_res_data.x_left or
-                      dut_res_data.x_right /= verilog_dut_res_data.x_right or
-                      dut_res_data.y_top /= verilog_dut_res_data.y_top or
-                      dut_res_data.y_bottom /= verilog_dut_res_data.y_bottom then
+                    if dut_bbox_data /= verilog_bbox_data then
                         error_res_box <= '1';
                         error_res_box_sticky <= '1';
                     end if;
