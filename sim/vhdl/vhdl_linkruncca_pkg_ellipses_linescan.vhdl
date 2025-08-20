@@ -9,7 +9,7 @@ package vhdl_linkruncca_pkg is
     -- USER PARAMETERS =>
 
     constant x_size: integer := 1024;
-    constant y_bits: integer := 15;
+    constant y_bits: integer := 10;
     
     -- <= USER PARAMETERS.
 
@@ -68,6 +68,7 @@ package vhdl_linkruncca_pkg is
 end;
 
 package body vhdl_linkruncca_pkg is
+    -- This function is used in simulation only, to verify functionality (bounding box result) against the Golden model.
     function feature2bbox(a: linkruncca_feature_t) return bbox_t is
         variable r: bbox_t;
     begin
@@ -102,8 +103,8 @@ package body vhdl_linkruncca_pkg is
                     r.y_bottom := to_integer(a.y_bottom_seg1) + y_low_size;
                 elsif a.y_bottom_seg0 /= y_low_max then
                     -- Y starts from 0 of segment 1, and continues to segment 0 but not to end of segment 0.
-                    r.y_top := y_low_size;
-                    r.y_bottom := to_integer(a.y_bottom_seg0) + 2*y_low_size;
+                    r.y_top := a.y_top_seg1 - y_low_size;
+                    r.y_bottom := to_integer(a.y_bottom_seg0);
                 else
                     -- y_top/bottom covers the whole y_size range.
                     r.y_top := 0;
