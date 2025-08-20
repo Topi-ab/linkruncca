@@ -94,7 +94,7 @@ package body vhdl_linkruncca_pkg is
                 -- Segment 1 is the first segment.
                 assert a.y_bottom_seg1 = y_low_max severity error;
                 assert a.y_top_seg0 = 0 severity error;
-                r.y_top := to_integer(a.y_top_seg1) + y_low_size;
+                r.y_top := to_integer(a.y_top_seg1) - y_low_size;
                 r.y_bottom := to_integer(a.y_bottom_seg0);
             else
                 if a.y_bottom_seg1 /= y_low_max then
