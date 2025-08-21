@@ -7,6 +7,7 @@ use std.env.all;
 
 use work.vhdl_linkruncca_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
+use work.ellipse_generator_pkg.all;
 
 entity tb_linkruncca is
     generic(
@@ -21,6 +22,23 @@ end;
 
 architecture tb of tb_linkruncca is
     constant dut_latency: integer := 3;
+
+    constant ellipses: ellipse_params_a(0 to 0) := (
+        0 => (
+            cx => 100.0,
+            cy => 100.0,
+            a => 63.0,
+            b => 12.0,
+            theta => 37.0,
+            inner_prob => 1.0,
+            outer_decay => 8000.0,
+            outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
+            interior_edge_bias => 0.0,
+            seed => 123,
+            pix_prob_min => 0.5,
+            pix_prob_max => 0.5
+        )
+    );
 
     constant box_bits: integer := 2*x_bits + 2*y_bits;
 
@@ -118,6 +136,8 @@ architecture tb of tb_linkruncca is
     signal error_res_valid_sticky: std_logic := '0';
     signal error_res_box: std_logic := '0';
     signal error_res_box_sticky: std_logic := '0';
+
+    signal dut_res_ellipses: resolved_ellipse_t;
 begin
     clk_pr: process
     begin
@@ -140,7 +160,8 @@ begin
     pixel_gen_pr: process
         variable pix_gen: image_gen_t;
         variable pix: pixel_t;
-    
+        variable full_y_counter: integer;
+        variable hard_pix: std_logic;
     begin
         dut_feed_valid <= '0';
         dut_feed_pix <= '0';
@@ -156,6 +177,8 @@ begin
 
         wait until rising_edge(clk) and sreset = '0';
 
+        full_y_counter := 0;
+
         dut_feed_valid <= '1';
         for img in 0 to MAX_IMG-1 loop
             pix_gen.image_number := img;
@@ -163,9 +186,12 @@ begin
                 pix_gen.y := y;
                 for x in 0 to x_size-1 loop
                     pix_gen.x := x;
-                    pix := get_image_pixel(pix_gen);
-                    dut_feed_pix <= pix.hard_pixel;
-                    dut_feed_pix_data.in_label <= pix.hard_pixel;
+                    -- pix := get_image_pixel(pix_gen);
+                    -- dut_feed_pix <= pix.hard_pixel;
+                    -- dut_feed_pix_data.in_label <= pix.hard_pixel;
+                    hard_pix := ellipse_pixel(x, full_y_counter, img, ellipses(0));
+                    dut_feed_pix <= hard_pix;
+                    dut_feed_pix_data.in_label <= hard_pix;
                     dut_feed_pix_data.x <= to_unsigned(x, dut_feed_pix_data.x);
                     dut_feed_pix_data.y <= to_unsigned(y, dut_feed_pix_data.y);
                     wait until rising_edge(clk);
@@ -173,6 +199,8 @@ begin
                 dut_feed_valid <= '0';
                 wait until rising_edge(clk);
                 dut_feed_valid <= '1';
+
+                full_y_counter := full_y_counter + 1;
             end loop;
             dut_feed_valid <= '0';
             for i in 1 to 15 loop
@@ -203,6 +231,11 @@ begin
             res_valid_out => dut_res_valid,
             res_data_out => dut_res_data
         );
+
+    process(all)
+    begin
+        dut_res_ellipses <= resolve_ellipse(dut_res_data);
+    end process;
 
     process(all)
     begin
