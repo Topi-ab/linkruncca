@@ -29,7 +29,7 @@ architecture tb of tb_linkruncca is
             cy => 100.0,
             a => 63.0,
             b => 12.0,
-            theta => 37.0,
+            theta => 10.0,
             inner_prob => 1.0,
             outer_decay => 8000.0,
             outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
@@ -43,7 +43,7 @@ architecture tb of tb_linkruncca is
             cy => 512.0,
             a => 63.0,
             b => 12.0,
-            theta => 37.0,
+            theta => 20.0,
             inner_prob => 1.0,
             outer_decay => 8000.0,
             outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
@@ -57,7 +57,7 @@ architecture tb of tb_linkruncca is
             cy => 700.0,
             a => 63.0,
             b => 12.0,
-            theta => 37.0,
+            theta => 30.0,
             inner_prob => 1.0,
             outer_decay => 8000.0,
             outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
@@ -71,7 +71,7 @@ architecture tb of tb_linkruncca is
             cy => 1025.0,
             a => 63.0,
             b => 12.0,
-            theta => 37.0,
+            theta => 40.0,
             inner_prob => 1.0,
             outer_decay => 8000.0,
             outer_power => 1.0, -- 8000 / 1 has rapid rolldown.

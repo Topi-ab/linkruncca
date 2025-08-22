@@ -5,17 +5,17 @@ use ieee.math_real.all;
 
 package vhdl_linkruncca_util_pkg is
     function fit(a: unsigned; extra_bits: natural := 0) return unsigned;
-    function fit(a: integer; extra_bits: natural := 0) return unsigned;
-    function sum_x(x1: integer; x2: integer) return integer;
-    function sum_x(x1: natural; x2: natural) return unsigned;
-    function sum_x2(x1: integer; x2: integer) return integer;
-    function sum_x2(x1: integer; x2: integer) return unsigned;
-    function sum_xy(x1: integer; x2: integer; y1: integer; y2: integer) return integer;
-    function sum_xy(x1: integer; x2: integer; y1: integer; y2: integer) return unsigned;
+    function fit(a: integer; extra_bits: integer := 0) return unsigned;
+    function sum_x(x1, x2: integer) return integer;
+    function sum_x(x1, x2: integer) return unsigned;
+    function sum_x2(x1, x2: integer) return integer;
+    function sum_x2(x1, x2: integer) return unsigned;
+    function sum_xy(x1, x2, y1, y2: integer) return integer;
+    function sum_xy(x1, x2, y1, y2: integer) return unsigned;
     function max2bits(a: integer) return integer;
     function max2bits(a: unsigned) return integer;
-    function min(a: unsigned; b: unsigned) return unsigned;
-    function max(a: unsigned; b: unsigned) return unsigned;
+    function min(a, b: unsigned) return unsigned;
+    function max(a, b: unsigned) return unsigned;
 
     type bbox_t is record
         x_left: integer;
@@ -46,34 +46,34 @@ package body vhdl_linkruncca_util_pkg is
         return fit(to_unsigned(a, max2bits(a)), extra_bits);
     end;
 
-    function sum_x(x1: integer; x2: integer) return integer is
+    function sum_x(x1, x2: integer) return integer is
     begin
         assert x2 >= x1 severity failure;
         return (x2-x1+1)*(x1+x2)/2;
     end;
 
-    function sum_x(x1: natural; x2: natural) return unsigned is
+    function sum_x(x1, x2: integer) return unsigned is
     begin
         assert x2 >= x1 severity failure;
         return fit((fit(x2, 2)-fit(x1, 2)+1)*(fit(x1, 1)+fit(x2, 1))/2);
     end;
 
-    function sum_x2(x1: integer; x2: integer) return integer is
+    function sum_x2(x1, x2: integer) return integer is
     begin
         return x2*(x2+1)*(2*x2+1)/6 - (x1-1)*x1*(2*x1-1)/6;
     end;
 
-    function sum_x2(x1: integer; x2: integer) return unsigned is
+    function sum_x2(x1, x2: integer) return unsigned is
     begin
         return fit(fit(x2)*(fit(x2, 1)+1)*(fit(2)*fit(x2, 1)+1)/6 - (fit(x1)-1)*fit(x1)*(fit(2)*fit(x1)-1)/6);
     end;
 
-    function sum_xy(x1: integer; x2: integer; y1: integer; y2: integer) return integer is
+    function sum_xy(x1, x2, y1, y2: integer) return integer is
     begin
         return sum_x(x1, x2) * sum_x(y1, y2);
     end;
 
-    function sum_xy(x1: integer; x2: integer; y1: integer; y2: integer) return unsigned is
+    function sum_xy(x1, x2, y1, y2: integer) return unsigned is
     begin
         return fit(unsigned'(sum_x(x1, x2)) * unsigned'(sum_x(y1, y2)));
     end;
@@ -95,7 +95,7 @@ package body vhdl_linkruncca_util_pkg is
         return max2bits(to_unsigned(a, 32));
     end;
 
-    function min(a: unsigned; b: unsigned) return unsigned is
+    function min(a, b: unsigned) return unsigned is
     begin
         if a < b then
             return a;
@@ -104,7 +104,7 @@ package body vhdl_linkruncca_util_pkg is
         end if;
     end;
 
-    function max(a: unsigned; b: unsigned) return unsigned is
+    function max(a, b: unsigned) return unsigned is
     begin
         if a > b then
             return a;

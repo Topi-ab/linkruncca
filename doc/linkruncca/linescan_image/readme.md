@@ -14,7 +14,7 @@ In area sensor mode, the object is detected only from one frame, and any overlap
 
 Virtual Y-coordinate is introduced. Rolling over counter (e.g. 8 bits in this text) Y-counter is used, which starts from 0, counts upto 255, and rolls over back to zero.
 
-In addition to Virtual Y-counter, virtual frame (based on virtual Y-coordinate) is divided to two segments. Segment 0 for Y-coordinates 0-127, and segment 1 for Y-coordinates 128-255. The segment is equal to MSB of Y-counter.
+In addition to Virtual Y-counter, virtual frame (based on virtual Y-coordinate) is divided to two segments. Segment 0 for Y-coordinates 0-127, and segment 1 for Y-coordinates 128-255. The segment number (0 or 1) is equal to MSB of Y-counter.
 
 For selected statistical variables, the data collection structure (linkruncca_feature_t) has separate field for segment 0 (seg0) and for segment 1 (seg1).
 
@@ -76,19 +76,20 @@ The coordinates are transposed to segment 0 coordinates. The segment 1 was prece
 
 ## Derivation of formulas
 
-$Y_{low0}$ is $Y_{low}$ coordinate when the pixel is in segment 0.
-$\\ Y_{low1}$ is $Y_{low}$ coordinate when the pixel is in segment 1.
+$$Y_{low0} = Y_{low} \text{\ \ when the pixel is in segment 0.}$$
+$$Y_{low1} = Y_{low} \text{\ \ when the pixel is in segment 1.}$$
 
 ### For cases 1,2 and 3:
 
 The Y-coordinate in full scale (0-255 in 8-bit example) can be reconstructed from y_low (7 LSB bits) and MSB bit by:
 
-$Y = Y_{low} + heigth_{segment} \cdot MSB$
+$$Y = Y_{low} + heigth_{segment} \cdot MSB$$
 
 Note that MSB is either 0, or 1, so 
-$\\ MSB^2 = MSB$
+$$MSB^2 = MSB$$
 
-and $height_{segment}$ is half the full Y-scale (128 in 8-bit example).
+and 
+$$height_{segment} \ \ \text{is half the full Y-scale (128 in 8-bit example).}$$
 
 Derivation process:
 
@@ -114,12 +115,13 @@ $$
 
 The Y-coordinate in full scale (0-255 in 8-bit example) can be reconstructed from y_low (7 LSB bits) and MSB bit by (the data on segment 1 precedes in Y-coordinates the data on segment 0):
 
-$Y = Y_{low} - heigth_{segment} \cdot MSB$
+$$Y = Y_{low} - heigth_{segment} \cdot MSB$$
 
 Note that MSB is either 0, or 1, so 
-$\\ MSB^2 = MSB$
+$$MSB^2 = MSB$$
 
-where $height_{segment}$ is half the full Y-scale (128 in 8-bit example).
+and
+$$height_{segment} \ \ \text{is half the full Y-scale (128 in 8-bit example).}$$
 
 Derivation process:
 
