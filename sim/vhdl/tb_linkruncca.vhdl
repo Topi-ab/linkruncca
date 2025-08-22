@@ -26,7 +26,7 @@ architecture tb of tb_linkruncca is
     constant ellipses: ellipse_params_a(0 to 0) := (
         0 => (
             cx => 100.0,
-            cy => 100.0,
+            cy => 500.0,
             a => 63.0,
             b => 12.0,
             theta => 37.0,

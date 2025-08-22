@@ -9,7 +9,7 @@ package vhdl_linkruncca_pkg is
     -- USER PARAMETERS =>
 
     constant x_size: integer := 400;
-    constant y_bits: integer := 16;
+    constant y_bits: integer := 10;
     
     -- <= USER PARAMETERS.
 
@@ -68,11 +68,38 @@ package vhdl_linkruncca_pkg is
         theta: real;
         pixels: real;
 
+        geom_case: integer;
+        u20: real;
+        u02: real;
+        u11: real;
+        l_left: real;
+        l_right: real;
+        l1: real;
+        l2: real;
+
+        x_left: real;
+        x_right: real;
+        y_top: real;
+        y_bottom: real;
+
         sum_x: real;
         sum_y: real;
         sum_xx: real;
         sum_yy: real;
         sum_xy: real;
+
+        y_top_seg0: real;
+        y_top_seg1: real;
+        y_bottom_seg0: real;
+        y_bottom_seg1: real;
+        ylow2_sum: real;
+        xylow_sum: real;
+        x_seg0_sum: real;
+        x_seg1_sum: real;
+        ylow_seg0_sum: real;
+        ylow_seg1_sum: real;
+        n_seg0_sum: real;
+        n_seg1_sum: real;
     end record;
 
     function resolve_ellipse(a: linkruncca_feature_t) return resolved_ellipse_t;
@@ -185,7 +212,7 @@ package body vhdl_linkruncca_pkg is
         if y_msb = '0' then
             r.x_seg0_sum := resize(a.x, r.x_seg0_sum);
             r.x_seg1_sum := to_unsigned(0, r.x_seg1_sum);
-            r.ylow_seg0_sum := resize(a.y, r.ylow_seg0_sum);
+            r.ylow_seg0_sum := resize(y_low, r.ylow_seg0_sum);
             r.ylow_seg1_sum := to_unsigned(0, r.ylow_seg1_sum);
             r.n_seg0_sum := to_unsigned(1, r.n_seg0_sum);
             r.n_seg1_sum := to_unsigned(0, r.n_seg1_sum);
@@ -193,7 +220,7 @@ package body vhdl_linkruncca_pkg is
             r.x_seg0_sum := to_unsigned(0, r.x_seg0_sum);
             r.x_seg1_sum := resize(a.x, r.x_seg1_sum);
             r.ylow_seg0_sum := to_unsigned(0, r.ylow_seg0_sum);
-            r.ylow_seg1_sum := resize(a.y, r.ylow_seg1_sum);
+            r.ylow_seg1_sum := resize(y_low, r.ylow_seg1_sum);
             r.n_seg0_sum := to_unsigned(0, r.n_seg0_sum);
             r.n_seg1_sum := to_unsigned(1, r.n_seg1_sum);
         end if;
@@ -275,16 +302,24 @@ package body vhdl_linkruncca_pkg is
         if a.n_seg0_sum /= 0 and a.n_seg1_sum = 0 then
             -- case 1 - within segment 0
             geom_case := 1;
+            r.y_top := to_real(a.y_top_seg1);
+            r.y_bottom := to_real(a.y_bottom_seg1);
         elsif a.n_seg0_sum = 0 and a.n_seg1_sum /= 0 then
             -- case 2 - within segment 1
             geom_case := 2;
+            r.y_top := to_real(a.y_top_seg1) + real(y_low_size);
+            r.y_bottom := to_real(a.y_bottom_seg1) + real(y_low_size);
         else
             if a.y_top_seg0 /= 0 and a.y_top_seg1 = 0 then
                 -- case 3 - within starts in segment 0, wraps over to segment 1.
                 geom_case := 3;
+                r.y_top := to_real(a.y_top_seg0);
+                r.y_bottom := to_real(a.y_bottom_seg1) + real(y_low_size);
             elsif a.y_top_seg0 = 0 and a.y_top_seg1 /= 0 then
                 -- case 4 - within starts in segment 1, wraps over to segment 0.
                 geom_case := 4;
+                r.y_top := to_real(a.y_top_seg1) - real(y_low_size);
+                r.y_bottom := to_real(a.y_bottom_seg0);
             else
             end if;
         end if;
@@ -318,11 +353,37 @@ package body vhdl_linkruncca_pkg is
         r.minor := 2.0*sqrt(l2);
         r.theta := 0.5*arctan(2.0*u11, u20 - u02) / MATH_PI * 180.0;
 
+        r.geom_case := geom_case;
+        r.u20 := u20;
+        r.u02 := u02;
+        r.u11 := u11;
+        r.l_left := l_left;
+        r.l_right := l_right;
+        r.l1 := l1;
+        r.l2 := l2;
+
+        r.x_left := to_real(a.x_left);
+        r.x_right := to_real(a.x_right);
+
         r.sum_x := sum_x;
         r.sum_y := sum_y;
         r.sum_xx := sum_xx;
         r.sum_yy := sum_yy;
         r.sum_xy := sum_xy;
+
+        r.y_top_seg0 := to_real(a.y_top_seg0);
+        r.y_top_seg1 := to_real(a.y_top_seg1);
+        r.y_bottom_seg0 := to_real(a.y_bottom_seg0);
+        r.y_bottom_seg1 := to_real(a.y_bottom_seg1);
+        r.ylow2_sum := to_real(a.ylow2_sum);
+        r.xylow_sum := to_real(a.xylow_sum);
+        r.x_seg0_sum := to_real(a.x_seg0_sum);
+        r.x_seg1_sum := to_real(a.x_seg1_sum);
+        r.ylow_seg0_sum := to_real(a.ylow_seg0_sum);
+        r.ylow_seg1_sum := to_real(a.ylow_seg1_sum);
+        r.n_seg0_sum := to_real(a.n_seg0_sum);
+        r.n_seg1_sum := to_real(a.n_seg1_sum);
+
         return r;
     end;
 end;
