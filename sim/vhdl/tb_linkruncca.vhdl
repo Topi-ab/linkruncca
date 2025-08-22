@@ -23,10 +23,52 @@ end;
 architecture tb of tb_linkruncca is
     constant dut_latency: integer := 3;
 
-    constant ellipses: ellipse_params_a(0 to 0) := (
+    constant ellipses: ellipse_params_a(0 to 3) := (
         0 => (
             cx => 100.0,
-            cy => 500.0,
+            cy => 100.0,
+            a => 63.0,
+            b => 12.0,
+            theta => 37.0,
+            inner_prob => 1.0,
+            outer_decay => 8000.0,
+            outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
+            interior_edge_bias => 0.0,
+            seed => 123,
+            pix_prob_min => 0.5,
+            pix_prob_max => 0.5
+        ),
+        1 => (
+            cx => 100.0,
+            cy => 512.0,
+            a => 63.0,
+            b => 12.0,
+            theta => 37.0,
+            inner_prob => 1.0,
+            outer_decay => 8000.0,
+            outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
+            interior_edge_bias => 0.0,
+            seed => 123,
+            pix_prob_min => 0.5,
+            pix_prob_max => 0.5
+        ),
+        2 => (
+            cx => 100.0,
+            cy => 700.0,
+            a => 63.0,
+            b => 12.0,
+            theta => 37.0,
+            inner_prob => 1.0,
+            outer_decay => 8000.0,
+            outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
+            interior_edge_bias => 0.0,
+            seed => 123,
+            pix_prob_min => 0.5,
+            pix_prob_max => 0.5
+        ),
+        3 => (
+            cx => 100.0,
+            cy => 1025.0,
             a => 63.0,
             b => 12.0,
             theta => 37.0,
@@ -189,7 +231,10 @@ begin
                     -- pix := get_image_pixel(pix_gen);
                     -- dut_feed_pix <= pix.hard_pixel;
                     -- dut_feed_pix_data.in_label <= pix.hard_pixel;
-                    hard_pix := ellipse_pixel(x, full_y_counter, img, ellipses(0));
+                    hard_pix := '0';
+                    for e in ellipses'range loop
+                        hard_pix := hard_pix or ellipse_pixel(x, full_y_counter, img, ellipses(e));
+                    end loop;
                     dut_feed_pix <= hard_pix;
                     dut_feed_pix_data.in_label <= hard_pix;
                     dut_feed_pix_data.x <= to_unsigned(x, dut_feed_pix_data.x);

@@ -302,8 +302,8 @@ package body vhdl_linkruncca_pkg is
         if a.n_seg0_sum /= 0 and a.n_seg1_sum = 0 then
             -- case 1 - within segment 0
             geom_case := 1;
-            r.y_top := to_real(a.y_top_seg1);
-            r.y_bottom := to_real(a.y_bottom_seg1);
+            r.y_top := to_real(a.y_top_seg0);
+            r.y_bottom := to_real(a.y_bottom_seg0);
         elsif a.n_seg0_sum = 0 and a.n_seg1_sum /= 0 then
             -- case 2 - within segment 1
             geom_case := 2;
