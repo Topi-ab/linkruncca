@@ -42,7 +42,7 @@ $$ret = \sum_{x=X_1}^{X_2} ( \sum_{y=Y_1}^{Y_2} (x \cdot y))$$
 - `max2bits(a: integer) return integer`
 - `max2bits(a: unsigned) return integer`
 
-These two `max2bits()` functions (max value to requred number of bits) return the exact number of bits required to represent `a` as unsigned integer.
+These two `max2bits()` functions (max value to required number of bits) return the exact number of bits required to represent `a` as unsigned integer.
 
 - `min(a, b: unsigned) return unsigned`
 - `max(a, b: unsigned) return unsigned`
