@@ -192,37 +192,40 @@ package body vhdl_linkruncca_pkg is
 
         r := linkruncca_feature_empty_val;
 
-        r.x_left := a.x;
-        r.x_right := a.x;
+        if a.in_label = '1' then
+            -- Holes filler creates ghost pixels, here making decision on original pixel's data.
+            r.x_left := a.x;
+            r.x_right := a.x;
 
-        if y_msb = '0' then
-            r.y_top_seg0 := y_low;
-            r.y_bottom_seg0 := y_low;
-        else
-            r.y_top_seg1 := y_low;
-            r.y_bottom_seg1 := y_low;
-        end if;
-        
+            if y_msb = '0' then
+                r.y_top_seg0 := y_low;
+                r.y_bottom_seg0 := y_low;
+            else
+                r.y_top_seg1 := y_low;
+                r.y_bottom_seg1 := y_low;
+            end if;
+            
 
-        r.x2_sum := resize(a.x*a.x, r.x2_sum);
+            r.x2_sum := resize(a.x*a.x, r.x2_sum);
 
-        r.ylow2_sum := resize(y_low*y_low, r.ylow2_sum);
-        r.xylow_sum := resize(a.x*y_low, r.xylow_sum);
+            r.ylow2_sum := resize(y_low*y_low, r.ylow2_sum);
+            r.xylow_sum := resize(a.x*y_low, r.xylow_sum);
 
-        if y_msb = '0' then
-            r.x_seg0_sum := resize(a.x, r.x_seg0_sum);
-            r.x_seg1_sum := to_unsigned(0, r.x_seg1_sum);
-            r.ylow_seg0_sum := resize(y_low, r.ylow_seg0_sum);
-            r.ylow_seg1_sum := to_unsigned(0, r.ylow_seg1_sum);
-            r.n_seg0_sum := to_unsigned(1, r.n_seg0_sum);
-            r.n_seg1_sum := to_unsigned(0, r.n_seg1_sum);
-        else
-            r.x_seg0_sum := to_unsigned(0, r.x_seg0_sum);
-            r.x_seg1_sum := resize(a.x, r.x_seg1_sum);
-            r.ylow_seg0_sum := to_unsigned(0, r.ylow_seg0_sum);
-            r.ylow_seg1_sum := resize(y_low, r.ylow_seg1_sum);
-            r.n_seg0_sum := to_unsigned(0, r.n_seg0_sum);
-            r.n_seg1_sum := to_unsigned(1, r.n_seg1_sum);
+            if y_msb = '0' then
+                r.x_seg0_sum := resize(a.x, r.x_seg0_sum);
+                r.x_seg1_sum := to_unsigned(0, r.x_seg1_sum);
+                r.ylow_seg0_sum := resize(y_low, r.ylow_seg0_sum);
+                r.ylow_seg1_sum := to_unsigned(0, r.ylow_seg1_sum);
+                r.n_seg0_sum := to_unsigned(1, r.n_seg0_sum);
+                r.n_seg1_sum := to_unsigned(0, r.n_seg1_sum);
+            else
+                r.x_seg0_sum := to_unsigned(0, r.x_seg0_sum);
+                r.x_seg1_sum := resize(a.x, r.x_seg1_sum);
+                r.ylow_seg0_sum := to_unsigned(0, r.ylow_seg0_sum);
+                r.ylow_seg1_sum := resize(y_low, r.ylow_seg1_sum);
+                r.n_seg0_sum := to_unsigned(0, r.n_seg0_sum);
+                r.n_seg1_sum := to_unsigned(1, r.n_seg1_sum);
+            end if;
         end if;
 
         return r;
