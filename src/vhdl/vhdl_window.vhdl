@@ -61,14 +61,13 @@ begin
                 c <= d;
                 d <= pix_in_current;
             end if;
-        --end if;
 
-        if rst = '1' then
-            a <= '0';
-            b <= '0';
-            c <= '0';
-            d <= '0';
-        end if;
+            if rst = '1' then
+                a <= '0';
+                b <= '0';
+                c <= '0';
+                d <= '0';
+            end if;
         end if;
     end process;
 end;

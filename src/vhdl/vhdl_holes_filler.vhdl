@@ -64,14 +64,13 @@ begin
                 x <= right;
                 right <= pix_in_current;
             end if;
-        -- end if;
 
-        if rst = '1' then
-            top <= '0';
-            left <= '0';
-            x <= '0';
-            right <= '0';
-        end if;
+            if rst = '1' then
+                top <= '0';
+                left <= '0';
+                x <= '0';
+                right <= '0';
+            end if;
         end if;
     end process;
 
