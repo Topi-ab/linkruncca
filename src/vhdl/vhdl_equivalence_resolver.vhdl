@@ -37,6 +37,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_equivalence_resolver is
     generic(
@@ -46,10 +47,11 @@ entity vhdl_equivalence_resolver is
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        A: in std_logic;
-        B: in std_logic;
-        C: in std_logic;
-        D: in std_logic;
+        neighbour_in: in pixel_neighbour_t;
+        -- A: in std_logic;
+        -- B: in std_logic;
+        -- C: in std_logic;
+        -- D: in std_logic;
         p: in unsigned(address_bit-1 downto 0);
         hp: in unsigned(address_bit-1 downto 0);
         np: in unsigned(address_bit-1 downto 0);
@@ -90,11 +92,11 @@ begin
     process(all)
     begin
         dmg <= o when not(f = '1' and hp = h) else '0';
-        dac <= d;
+        dac <= neighbour_in.d;
 
-        ec <= c and not d;
-        ep <= a and not b;
-        o <= b and d and ((not a) or (not c));
+        ec <= neighbour_in.c and not neighbour_in.d;
+        ep <= neighbour_in.a and not neighbour_in.b;
+        o <= neighbour_in.b and neighbour_in.d and ((not neighbour_in.a) or (not neighbour_in.c));
         clr <= ec;
         hcn <= hbf when np = p else '0';
     end process;

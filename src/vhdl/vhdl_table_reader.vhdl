@@ -37,6 +37,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_util_pkg.all;
+
 
 entity vhdl_table_reader is
     generic(
@@ -46,8 +48,9 @@ entity vhdl_table_reader is
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        A: in std_logic;
-        B: in std_logic;
+        neighbour_in: pixel_neighbour_t;
+        -- A: in std_logic;
+        -- B: in std_logic;
         r1: in std_logic;
         r2: in std_logic;
         O: in std_logic;
@@ -116,8 +119,10 @@ begin
 
     process(all)
     begin
-        tp <= t_rdata when a = '0' and b = '1' else rtp;
-        dp <= d_rdata when a = '0' and b = '1' else rdp;
+        -- tp <= t_rdata when a = '0' and b = '1' else rtp;
+        -- dp <= d_rdata when a = '0' and b = '1' else rdp;
+        tp <= t_rdata when neighbour_in.a = '0' and neighbour_in.b = '1' else rtp;
+        dp <= d_rdata when neighbour_in.a = '0' and neighbour_in.b = '1' else rdp;
     end process;
 
     process(clk, rst)
@@ -129,7 +134,8 @@ begin
                 if dcn = '1' then
                     rdp <= d;
                 end if;
-                if b = '0' and r1 = '1' then
+                -- if b = '0' and r1 = '1' then
+                if neighbour_in.b = '0' and r1 = '1' then
                     hp <= t_raddr;
                     fp <= '0' when t_raddr = p else '1';
                     np <= n_rdata;

@@ -36,37 +36,84 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_util_pkg.all;
+
 entity vhdl_window is
+    generic(
+        gen_x_size: positive
+    );
     port(
-        clk: in std_logic;
-        rst: in std_logic;
-        datavalid: in std_logic;
-        pix_in_current: in std_logic;
-        pix_in_previous: in std_logic;
-        A: out std_logic;
-        B: out std_logic;
-        C: out std_logic;
-        D: out std_logic
+        clk_in: in std_logic;
+        rst_in: in std_logic;
+        pix_valid_in: in std_logic;
+        pix_current_in: in std_logic;
+        pix_current_orig_in: in std_logic;
+        pix_previous_in: in std_logic;
+        a_out: out std_logic;
+        b_out: out std_logic;
+        c_out: out std_logic;
+        d_out: out std_logic;
+        neighbour_out: out pixel_neighbour_t;
+        r1_out: out std_logic;
+        r2_out: out std_logic
     );
 end;
 
 architecture rtl of vhdl_window is
+    constant buff_len: integer := gen_x_size - 1;
+
+    type pix_t is record
+        pix: std_logic;
+        pix_orig: std_logic;
+    end record;
+
+    type pix_buff_a is array(0 to buff_len-1) of pix_t;
+    signal pix_buff: pix_buff_a;
+
+    signal pix_current: pix_t;
+    signal pix_prev: pix_t;
 begin
-    process(clk)
+    process(all)
     begin
-        if rising_edge(clk) then
-            if datavalid = '1' then
-                a <= b;
-                b <= pix_in_previous;
-                c <= d;
-                d <= pix_in_current;
+        pix_current.pix <= pix_current_in;
+        pix_current.pix_orig <= pix_current_orig_in;
+
+        pix_prev <= pix_buff(buff_len-1);
+
+        r1_out <= neighbour_out.e;
+        r2_out <= pix_prev.pix;
+    end process;
+
+    process(clk_in)
+    begin
+        if rising_edge(clk_in) then
+            if pix_valid_in = '1' then
+                pix_buff(1 to buff_len-1) <= pix_buff(0 to buff_len-2);
+                pix_buff(0) <= pix_current;
+
+                a_out <= b_out;
+                b_out <= pix_previous_in;
+                c_out <= d_out;
+                d_out <= pix_current_in;
+
+                neighbour_out.a <= neighbour_out.b;
+                neighbour_out.b <= neighbour_out.e;
+                neighbour_out.e <= pix_prev.pix;
+                neighbour_out.c <= neighbour_out.d;
+                neighbour_out.d <= pix_current_in;
+
+                neighbour_out.a_orig <= neighbour_out.b_orig;
+                neighbour_out.b_orig <= neighbour_out.e_orig;
+                neighbour_out.e_orig <= pix_prev.pix_orig;
+                neighbour_out.c_orig <= neighbour_out.d_orig;
+                neighbour_out.d_orig <= pix_current_orig_in;
             end if;
 
-            if rst = '1' then
-                a <= '0';
-                b <= '0';
-                c <= '0';
-                d <= '0';
+            if rst_in = '1' then
+                a_out <= '0';
+                b_out <= '0';
+                c_out <= '0';
+                d_out <= '0';
             end if;
         end if;
     end process;

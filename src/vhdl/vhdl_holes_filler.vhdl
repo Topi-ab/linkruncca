@@ -40,13 +40,14 @@ use work.vhdl_linkruncca_pkg.all;
 
 entity vhdl_holes_filler is
     port(
-        clk: in std_logic;
-        rst: in std_logic;
-        datavalid: in std_logic;
-        pix_in_current: in std_logic;
-        pix_in_previous: in std_logic;
-        left: out std_logic;
-        pix_out: out std_logic
+        clk_in: in std_logic;
+        rst_in: in std_logic;
+        datavalid_in: in std_logic;
+        pix_current_in: in std_logic;
+        pix_previous_in: in std_logic;
+        pix_left_out: out std_logic;
+        pix_out: out std_logic;
+        pix_orig_out: out std_logic
     );
 end;
 
@@ -55,19 +56,19 @@ architecture rtl of vhdl_holes_filler is
     signal x: std_logic;
     signal right: std_logic;
 begin
-    process(clk)
+    process(clk_in)
     begin
-        if rising_edge(clk) then
-            if datavalid = '1' then
-                top <= pix_in_previous;
-                left <= x;
+        if rising_edge(clk_in) then
+            if datavalid_in = '1' then
+                top <= pix_previous_in;
+                pix_left_out <= x;
                 x <= right;
-                right <= pix_in_current;
+                right <= pix_current_in;
             end if;
 
-            if rst = '1' then
+            if rst_in = '1' then
                 top <= '0';
-                left <= '0';
+                pix_left_out <= '0';
                 x <= '0';
                 right <= '0';
             end if;
@@ -77,7 +78,8 @@ begin
     process(all)
     begin
         pix_out <= x;
-        if top = '1' and (left = '1' or right = '1') then
+        pix_orig_out <= x;
+        if top = '1' and (pix_left_out = '1' or right = '1') then
             pix_out <= '1';
         end if;
     end process;

@@ -22,6 +22,7 @@ package vhdl_linkruncca_pkg is
     constant y_low_size: integer := 2**y_low_bits;
     constant y_low_max: integer := y_low_size - 1;
     constant n_seg_sum_bits: integer := max2bits(fit(x_size) * fit(y_low_size));
+    constant edge_seg_sum_bits: integer := max2bits(fit(2) * fit(x_size) * fit(y_low_size));
 
     constant mem_add_bits: integer := x_bits-1;
 
@@ -39,6 +40,7 @@ package vhdl_linkruncca_pkg is
         has_red: std_logic;
         has_green: std_logic;
         has_blue: std_logic;
+        neighbour: pixel_neighbour_t;
     end record;
 
     -- This structure holds features for single label.
@@ -58,6 +60,10 @@ package vhdl_linkruncca_pkg is
         ylow_seg1_sum: unsigned(ylow_seg_sum_bits-1 downto 0);
         n_seg0_sum: unsigned(n_seg_sum_bits-1 downto 0);
         n_seg1_sum: unsigned(n_seg_sum_bits-1 downto 0);
+        edge_orthogonal_seg0_sum: unsigned(edge_seg_sum_bits-1 downto 0);
+        edge_orthogonal_seg1_sum: unsigned(edge_seg_sum_bits-1 downto 0);
+        edge_diagonal_seg0_sum: unsigned(edge_seg_sum_bits-1 downto 0);
+        edge_diagonal_seg1_sum: unsigned(edge_seg_sum_bits-1 downto 0);
     end record;
 
     type resolved_ellipse_t is record
@@ -67,6 +73,7 @@ package vhdl_linkruncca_pkg is
         minor: real;
         theta: real;
         pixels: real;
+        perimeter: real;
 
         geom_case: integer;
         u20: real;
@@ -178,6 +185,10 @@ package body vhdl_linkruncca_pkg is
         r.ylow_seg1_sum := (others => '0');
         r.n_seg0_sum := (others => '0');
         r.n_seg1_sum := (others => '0');
+        r.edge_orthogonal_seg0_sum := (others => '0');
+        r.edge_orthogonal_seg1_sum := (others => '0');
+        r.edge_diagonal_seg0_sum := (others => '0');
+        r.edge_diagonal_seg1_sum := (others => '0');
 
         return r;
     end;
@@ -186,6 +197,8 @@ package body vhdl_linkruncca_pkg is
         variable r: linkruncca_feature_t;
         variable y_msb: std_logic;
         variable y_low: unsigned(y_low_bits-1 downto 0);
+        variable orthogonal: unsigned(r.edge_orthogonal_seg0_sum'range);
+        variable diagonal: unsigned(r.edge_diagonal_seg0_sum'range);
     begin
         y_msb := a.y(a.y'high);
         y_low := a.y(a.y'high-1 downto a.y'low);
@@ -211,6 +224,25 @@ package body vhdl_linkruncca_pkg is
             r.ylow2_sum := resize(y_low*y_low, r.ylow2_sum);
             r.xylow_sum := resize(a.x*y_low, r.xylow_sum);
 
+            diagonal := (others => '0');
+            orthogonal := (others => '0');
+            
+            if a.neighbour.a_orig = '0' then
+                diagonal := diagonal + 1;
+            end if;
+
+            if a.neighbour.b_orig = '0' then
+                orthogonal := orthogonal + 1;
+            end if;
+
+            if a.neighbour.e_orig = '0' then
+                diagonal := diagonal + 1;
+            end if;
+
+            if a.neighbour.c_orig = '0' then
+                orthogonal := orthogonal + 1;
+            end if;
+
             if y_msb = '0' then
                 r.x_seg0_sum := resize(a.x, r.x_seg0_sum);
                 r.x_seg1_sum := to_unsigned(0, r.x_seg1_sum);
@@ -218,6 +250,8 @@ package body vhdl_linkruncca_pkg is
                 r.ylow_seg1_sum := to_unsigned(0, r.ylow_seg1_sum);
                 r.n_seg0_sum := to_unsigned(1, r.n_seg0_sum);
                 r.n_seg1_sum := to_unsigned(0, r.n_seg1_sum);
+                r.edge_diagonal_seg0_sum := diagonal;
+                r.edge_orthogonal_seg0_sum := orthogonal;
             else
                 r.x_seg0_sum := to_unsigned(0, r.x_seg0_sum);
                 r.x_seg1_sum := resize(a.x, r.x_seg1_sum);
@@ -225,6 +259,8 @@ package body vhdl_linkruncca_pkg is
                 r.ylow_seg1_sum := resize(y_low, r.ylow_seg1_sum);
                 r.n_seg0_sum := to_unsigned(0, r.n_seg0_sum);
                 r.n_seg1_sum := to_unsigned(1, r.n_seg1_sum);
+                r.edge_diagonal_seg1_sum := diagonal;
+                r.edge_orthogonal_seg1_sum := orthogonal;
             end if;
         end if;
 
@@ -255,6 +291,11 @@ package body vhdl_linkruncca_pkg is
         r.ylow_seg1_sum := r.ylow_seg1_sum + b.ylow_seg1_sum;
         r.n_seg0_sum := r.n_seg0_sum + b.n_seg0_sum;
         r.n_seg1_sum := r.n_seg1_sum + b.n_seg1_sum;
+
+        r.edge_orthogonal_seg0_sum := r.edge_orthogonal_seg0_sum + b.edge_orthogonal_seg0_sum;
+        r.edge_orthogonal_seg1_sum := r.edge_orthogonal_seg1_sum + b.edge_orthogonal_seg1_sum;
+        r.edge_diagonal_seg0_sum := r.edge_diagonal_seg0_sum + b.edge_diagonal_seg0_sum;
+        r.edge_diagonal_seg1_sum := r.edge_diagonal_seg1_sum + b.edge_diagonal_seg1_sum;
 
         return r;
     end;
@@ -291,6 +332,8 @@ package body vhdl_linkruncca_pkg is
         variable l_right: real;
         variable l1: real;
         variable l2: real;
+        variable edge_orthogonal: real;
+        variable edge_diagonal: real;
     begin
         pixels := to_real(a.n_seg0_sum) + to_real(a.n_seg1_sum);
         if pixels = 0.0 then
@@ -352,9 +395,14 @@ package body vhdl_linkruncca_pkg is
         r.pixels := pixels;
         r.cx := x_mean;
         r.cy := y_mean;
-        r.major := 2.0*sqrt(l1);
-        r.minor := 2.0*sqrt(l2);
+        r.major := 4.0*sqrt(l1);
+        r.minor := 4.0*sqrt(l2);
         r.theta := 0.5*arctan(2.0*u11, u20 - u02) / MATH_PI * 180.0;
+
+        -- Using Cauchy-Crofton estimation for perimeter:
+        edge_orthogonal := to_real(a.edge_orthogonal_seg0_sum) + to_real(a.edge_orthogonal_seg1_sum);
+        edge_diagonal := to_real(a.edge_diagonal_seg0_sum) + to_real(a.edge_diagonal_seg1_sum);
+        r.perimeter := MATH_PI/4.0 * (edge_orthogonal + 1.0/sqrt(2.0)*edge_diagonal);
 
         r.geom_case := geom_case;
         r.u20 := u20;

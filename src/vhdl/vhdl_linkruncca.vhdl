@@ -38,6 +38,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_linkruncca is
     generic(
@@ -80,6 +81,8 @@ architecture rtl of vhdl_linkruncca is
     signal d_we: std_logic;
 
     -- Connection signals
+    signal neighbour: pixel_neighbour_t;
+
     signal A: std_logic;
     signal B: std_logic;
     signal C: std_logic;
@@ -102,7 +105,8 @@ architecture rtl of vhdl_linkruncca is
     signal dp: linkruncca_feature_t;
     signal left: std_logic;
     signal hr1: std_logic;
-    signal hf_out: std_logic;
+    signal hf_pix: std_logic;
+    signal hf_orig_pix: std_logic;
 
     signal pix_d1: linkruncca_collect_t;
     signal pix_d2: linkruncca_collect_t;
@@ -178,13 +182,14 @@ begin
     -- Holes Filler
     HF: entity work.vhdl_holes_filler
         port map(
-            clk => clk,
-            rst => rst,
-            datavalid => datavalid,
-            pix_in_current => pix_in.in_label,
-            pix_in_previous => hr1,
-            left => left,
-            pix_out => hf_out
+            clk_in => clk,
+            rst_in => rst,
+            datavalid_in => datavalid,
+            pix_current_in => pix_in.in_label,
+            pix_previous_in => hr1,
+            pix_left_out => left,
+            pix_out => hf_pix,
+            pix_orig_out => hf_orig_pix
         );
 
     RBHF: entity work.vhdl_row_buf
@@ -200,19 +205,26 @@ begin
 
     -- Window and row buffer
     WIN: entity work.vhdl_window
+        generic map(
+            gen_x_size => x_size
+        )
         port map(
-            clk => clk,
-            rst => rst,
-            datavalid => datavalid,
-            pix_in_current => hf_out,
-            pix_in_previous => r1,
-            A => A,
-            B => B,
-            C => C,
-            D => D
+            clk_in => clk,
+            rst_in => rst,
+            pix_valid_in => datavalid,
+            pix_current_in => hf_pix,
+            pix_current_orig_in => hf_orig_pix,
+            pix_previous_in => r1,
+            a_out => A,
+            b_out => B,
+            c_out => C,
+            d_out => D,
+            neighbour_out => neighbour,
+            r1_out => r1,
+            r2_out => r2
         );
 
-    RB: entity work.vhdl_row_buf
+    /*RB: entity work.vhdl_row_buf
         generic map(
             length => imwidth - 2
         )
@@ -222,7 +234,7 @@ begin
             pix_in => C,
             pix_out1 => r1,
             pix_out2 => r2
-        );
+        );*/
 
     -- Table Reader
     TR: entity work.vhdl_table_reader
@@ -233,8 +245,9 @@ begin
             clk => clk,
             rst => rst,
             datavalid => datavalid,
-            A => A,
-            B => B,
+            neighbour_in => neighbour,
+            -- A => A,
+            -- B => B,
             r1 => r1,
             r2 => r2,
             d => dd,
@@ -270,10 +283,11 @@ begin
             clk => clk,
             rst => rst,
             datavalid => datavalid,
-            A => A,
-            B => B,
-            C => C,
-            D => D,
+            neighbour_in => neighbour,
+            -- A => A,
+            -- B => B,
+            -- C => C,
+            -- D => D,
             p => p,
             hp => hp,
             np => np,
@@ -314,6 +328,7 @@ begin
             rst => rst, 
             datavalid => datavalid,
             pix_in => pix_d3,
+            neighbour_in => neighbour,
             DAC => DAC, 
             DMG => DMG, 
             CLR => CLR, 

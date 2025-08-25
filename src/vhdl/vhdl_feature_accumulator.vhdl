@@ -37,6 +37,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_feature_accumulator is
     generic(
@@ -49,6 +50,7 @@ entity vhdl_feature_accumulator is
         rst: in std_logic;
         datavalid: in std_logic;
         pix_in: in linkruncca_collect_t;
+        neighbour_in: in pixel_neighbour_t;
         DAC: in std_logic;
         DMG: in std_logic;
         CLR: in std_logic;
@@ -80,6 +82,7 @@ begin
         variable label_data_pix: linkruncca_feature_t;
     begin
         pix_data := pix_in;
+        pix_data.neighbour := neighbour_in;
         label_data_pix := linkruncca_feature_collect(pix_data);
         -- label_data_pix := feature_feed;
 

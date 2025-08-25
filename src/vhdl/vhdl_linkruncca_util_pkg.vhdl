@@ -23,6 +23,28 @@ package vhdl_linkruncca_util_pkg is
         y_top: integer;
         y_bottom: integer;
     end record;
+
+    type pixel_neighbour_t is record
+        -- d is the active pixel to study, a,b,c,e are neighmour pixels:
+        --
+        -- a b e
+        -- c d
+        --
+        -- *_orig is the pixel before holes_filler
+        -- a,b,c,d,e are after holes_filler
+
+        a: std_logic;
+        b: std_logic;
+        c: std_logic;
+        d: std_logic;
+        e: std_logic;
+
+        a_orig: std_logic;
+        b_orig: std_logic;
+        c_orig: std_logic;
+        d_orig: std_logic;
+        e_orig: std_logic;
+    end record;
 end;
 
 package body vhdl_linkruncca_util_pkg is

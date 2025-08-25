@@ -29,7 +29,7 @@ architecture tb of tb_linkruncca is
             cy => 100.0,
             a => 63.0,
             b => 12.0,
-            theta => 10.0,
+            theta => 0.0,
             inner_prob => 1.0,
             outer_decay => 8000.0,
             outer_power => 1.0, -- 8000 / 1 has rapid rolldown.
@@ -232,6 +232,12 @@ begin
                     -- dut_feed_pix <= pix.hard_pixel;
                     -- dut_feed_pix_data.in_label <= pix.hard_pixel;
                     hard_pix := '0';
+                    if x >= 3 and x <= 12 then
+                        if y >= 3 and y <= 12 then
+                            hard_pix := '1';
+                        end if;
+                    end if;
+
                     for e in ellipses'range loop
                         hard_pix := hard_pix or ellipse_pixel(x, full_y_counter, img, ellipses(e));
                     end loop;
