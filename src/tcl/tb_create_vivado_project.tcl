@@ -61,6 +61,8 @@ add_files -fileset constrs_1 timing.sdc
 set_property top $top_module [current_fileset]
 
 # Add simulation VHDL files:
+add_files -fileset sim_1 ../../sim/vhdl/tb_linkruncca_linescan.vhdl
+set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/tb_linkruncca_linescan.vhdl]
 add_files -fileset sim_1 ../../sim/vhdl/tb_linkruncca.vhdl
 set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/tb_linkruncca.vhdl]
 
