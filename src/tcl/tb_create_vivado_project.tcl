@@ -13,7 +13,7 @@ foreach item [glob -nocomplain -directory $proj_dir *] {
 create_project $proj_name $proj_dir -part $fpga_part
 
 # Add VHDL files:
-#add_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses.vhdl
+add_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses.vhdl
 add_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses_linescan.vhdl
 
 #add_files ../vhdl/vhdl_linkruncca_pkg.vhdl
@@ -28,7 +28,7 @@ add_files ../vhdl/vhdl_table_reader.vhdl
 add_files ../vhdl/vhdl_window.vhdl
 add_files ../vhdl/vhdl_linkruncca.vhdl
 
-#set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses.vhdl]
+set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses.vhdl]
 set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses_linescan.vhdl]
 
 #set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_linkruncca_pkg.vhdl]
