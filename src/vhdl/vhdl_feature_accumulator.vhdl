@@ -65,13 +65,23 @@ architecture rtl of vhdl_feature_accumulator is
     signal d_pix: linkruncca_feature_t;
     signal d_pix_d1: linkruncca_feature_t;
     signal d_acc: linkruncca_feature_t;
+
+    -- signal feature_feed: linkruncca_feature_t;
 begin
+    /*feature_precalc_i: entity work.feature_precalc
+        port map(
+            clk_in => clk,
+            collect_in => pix_in,
+            feature_out => feature_feed
+        );*/
+
     input_async_pr: process(all)
         variable pix_data: linkruncca_collect_t;
         variable label_data_pix: linkruncca_feature_t;
     begin
         pix_data := pix_in;
         label_data_pix := linkruncca_feature_collect(pix_data);
+        -- label_data_pix := feature_feed;
 
         d_pix <= linkruncca_feature_empty_val;
         case std_logic_vector'(dmg & dac) is

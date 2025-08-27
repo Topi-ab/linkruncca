@@ -14,8 +14,10 @@ create_project $proj_name $proj_dir -part $fpga_part
 
 # Add VHDL files:
 add_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses.vhdl
+add_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses_linescan.vhdl
 
 #add_files ../vhdl/vhdl_linkruncca_pkg.vhdl
+add_files ../vhdl/vhdl_linkruncca_util_pkg.vhdl
 add_files ../vhdl/vhdl_equivalence_resolver.vhdl
 add_files ../vhdl/vhdl_feature_accumulator.vhdl
 add_files ../vhdl/vhdl_holes_filler.vhdl
@@ -27,8 +29,10 @@ add_files ../vhdl/vhdl_window.vhdl
 add_files ../vhdl/vhdl_linkruncca.vhdl
 
 set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses.vhdl]
+set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/vhdl_linkruncca_pkg_ellipses_linescan.vhdl]
 
 #set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_linkruncca_pkg.vhdl]
+set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_linkruncca_util_pkg.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_equivalence_resolver.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_feature_accumulator.vhdl]
 set_property file_type {VHDL 2008} [get_files ../vhdl/vhdl_holes_filler.vhdl]
@@ -57,6 +61,8 @@ add_files -fileset constrs_1 timing.sdc
 set_property top $top_module [current_fileset]
 
 # Add simulation VHDL files:
+add_files -fileset sim_1 ../../sim/vhdl/tb_linkruncca_linescan.vhdl
+set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/tb_linkruncca_linescan.vhdl]
 add_files -fileset sim_1 ../../sim/vhdl/tb_linkruncca.vhdl
 set_property file_type {VHDL 2008} [get_files ../../sim/vhdl/tb_linkruncca.vhdl]
 

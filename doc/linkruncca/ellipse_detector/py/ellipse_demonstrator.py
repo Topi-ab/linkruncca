@@ -47,20 +47,23 @@ def generate_points_in_ellipse(center, a, b, angle_rad, n_points=300, seed=None)
     pts = np.column_stack((X, Y)) @ R.T + np.array(center)
     return pts
 
-def plot_datasets_with_ellipses(datasets, colors=None):
+def plot_datasets_with_ellipses(datasets, colors=None, contour_colors=None):
     if colors is None:
         colors = ["tab:blue", "tab:orange", "tab:green"]
+    if contour_colors is None:
+        contour_colors = colors
 
     fig, ax = plt.subplots()
     for i, pts in enumerate(datasets):
         c = colors[i % len(colors)]
+        cc = contour_colors[i % len(colors)]
         ax.scatter(pts[:, 0], pts[:, 1], s=10, alpha=0.7, color=c, label=f"Dataset {i+1}")
 
         Sx, Sy, Sxy, Sxx, Syy, N = sums_from_points(pts)
         xc, yc, major, minor, ang = ellipse_from_sums_md(Sx, Sy, Sxy, Sxx, Syy, N)
 
         e = Ellipse((xc, yc), width=major, height=minor,
-                    angle=np.degrees(ang), fill=False, lw=2, ec=c)
+                    angle=np.degrees(ang), fill=False, lw=2, ec=cc)
         ax.add_patch(e)
 
         print(f"Dataset {i+1}: center=({xc:.2f}, {yc:.2f}), "
@@ -77,4 +80,4 @@ ds1 = generate_points_in_ellipse(center=(0, 0),   a=5, b=2.5, angle_rad=np.radia
 ds2 = generate_points_in_ellipse(center=(12, 3),  a=3, b=1.2, angle_rad=np.radians(-20), n_points=350, seed=2)
 ds3 = generate_points_in_ellipse(center=(-8, 7),  a=4, b=3.5, angle_rad=np.radians(70), n_points=300, seed=3)
 
-plot_datasets_with_ellipses([ds1, ds2, ds3], colors=["red", "green", "blue"])
+plot_datasets_with_ellipses([ds1, ds2, ds3], colors=["red", "green", "blue"], contour_colors=["green", "blue", "red"])
