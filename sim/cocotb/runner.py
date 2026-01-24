@@ -192,7 +192,18 @@ def run() -> None:
                 else:
                     print(f"Detection {idx} overlaps shapes: none")
 
-                colors = ["tab:blue", "tab:orange"]
+                colors = [
+                    "tab:blue",
+                    "tab:orange",
+                    "tab:green",
+                    "tab:red",
+                    "tab:purple",
+                    "tab:brown",
+                    "tab:pink",
+                    "tab:gray",
+                    "tab:olive",
+                    "tab:cyan",
+                ]
                 for shape_idx, (shape, entry) in enumerate(zip(shapes, shape_entries)):
                     if not shape.intersects_ellipse(item):
                         continue
