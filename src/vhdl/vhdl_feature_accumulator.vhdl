@@ -82,8 +82,8 @@ begin
         variable label_data_pix: linkruncca_feature_t;
     begin
         pix_data := pix_in;
-        pix_data.neighbour := neighbour_in;
-        label_data_pix := linkruncca_feature_collect(pix_data);
+        -- pix_data.neighbour := neighbour_in;
+        label_data_pix := linkruncca_feature_collect(pix_data, neighbour_in);
         -- label_data_pix := feature_feed;
 
         d_pix <= linkruncca_feature_empty_val;

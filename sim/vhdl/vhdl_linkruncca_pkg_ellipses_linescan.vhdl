@@ -8,7 +8,7 @@ use work.vhdl_linkruncca_util_pkg.all;
 package vhdl_linkruncca_pkg is
     -- USER PARAMETERS =>
 
-    constant x_size: integer := 400;
+    constant x_size: integer := 200;
     constant y_bits: integer := 10;
     
     -- <= USER PARAMETERS.
@@ -40,7 +40,7 @@ package vhdl_linkruncca_pkg is
         has_red: std_logic;
         has_green: std_logic;
         has_blue: std_logic;
-        neighbour: pixel_neighbour_t;
+        -- neighbour: pixel_neighbour_t;
     end record;
 
     -- This structure holds features for single label.
@@ -112,7 +112,7 @@ package vhdl_linkruncca_pkg is
     function resolve_ellipse(a: linkruncca_feature_t) return resolved_ellipse_t;
 
     function linkruncca_feature_empty_val return linkruncca_feature_t;
-    function linkruncca_feature_collect(a: linkruncca_collect_t) return linkruncca_feature_t;
+    function linkruncca_feature_collect(a: linkruncca_collect_t; neighbour: pixel_neighbour_t) return linkruncca_feature_t;
     function linkruncca_feature_merge(a: linkruncca_feature_t; b: linkruncca_feature_t) return linkruncca_feature_t;
 
     function feature2bbox(a: linkruncca_feature_t) return bbox_t;
@@ -193,7 +193,7 @@ package body vhdl_linkruncca_pkg is
         return r;
     end;
 
-    function linkruncca_feature_collect(a: linkruncca_collect_t) return linkruncca_feature_t is
+    function linkruncca_feature_collect(a: linkruncca_collect_t; neighbour: pixel_neighbour_t) return linkruncca_feature_t is
         variable r: linkruncca_feature_t;
         variable y_msb: std_logic;
         variable y_low: unsigned(y_low_bits-1 downto 0);
@@ -227,19 +227,19 @@ package body vhdl_linkruncca_pkg is
             diagonal := (others => '0');
             orthogonal := (others => '0');
             
-            if a.neighbour.a_orig = '0' then
+            if neighbour.a_orig = '0' then
                 diagonal := diagonal + 1;
             end if;
 
-            if a.neighbour.b_orig = '0' then
+            if neighbour.b_orig = '0' then
                 orthogonal := orthogonal + 1;
             end if;
 
-            if a.neighbour.e_orig = '0' then
+            if neighbour.e_orig = '0' then
                 diagonal := diagonal + 1;
             end if;
 
-            if a.neighbour.c_orig = '0' then
+            if neighbour.c_orig = '0' then
                 orthogonal := orthogonal + 1;
             end if;
 

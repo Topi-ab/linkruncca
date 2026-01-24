@@ -44,7 +44,7 @@ def _default_sources(root: Path, hdl_toplevel: str) -> List[Path]:
         src_vhdl / "vhdl_equivalence_resolver.vhdl",
         src_vhdl / "vhdl_feature_accumulator.vhdl",
         src_vhdl / "vhdl_row_buf.vhdl",
-        src_vhdl / "feature_precalc.vhdl",
+        #src_vhdl / "feature_precalc.vhdl",
         src_vhdl / "vhdl_linkruncca.vhdl",
     ]
 
@@ -86,6 +86,8 @@ def run() -> None:
         std_arg = f"--std={nvc_std}"
         build_args = [std_arg, *_split_env("NVC_BUILD_ARGS")]
         test_args = [*_split_env("NVC_RUN_ARGS")]
+        if not any(arg.startswith("--ieee-warnings") for arg in build_args):
+            build_args.append("--ieee-warnings=off")
 
     sources = _default_sources(root, hdl_toplevel)
     build_dir = Path(os.getenv("SIM_BUILD_DIR", root / "sim" / "cocotb" / "sim_build"))
@@ -105,6 +107,7 @@ def run() -> None:
         test_module=test_module,
         test_args=test_args,
         build_dir=build_dir,
+        waves=True,
     )
 
 
