@@ -13,11 +13,16 @@ GHDL (default, Docker if GHDL is not available locally):
 NVC (Docker):
 
 ```bash
-docker-compose -f docker/docker-compose.yml build nvc-cocotb
 ./run_nvc_docker.sh
 ```
 
 ## Build Images
+
+Build both containers:
+
+```bash
+./build_docker.sh
+```
 
 Build GHDL container:
 
@@ -37,6 +42,12 @@ docker-compose -f docker/docker-compose.yml build nvc-cocotb
 
 ```bash
 COCOTB_DEBUG=1 bash run_ghdl_docker.sh
+```
+
+NVC debug:
+
+```bash
+COCOTB_DEBUG=1 bash run_nvc_docker.sh
 ```
 
 2) Attach VS Code using the "Attach cocotb (debugpy)" config in `.vscode/launch.json`.
