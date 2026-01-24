@@ -26,12 +26,12 @@ async def smoke_linkruncca(dut):
     await feeder.reset(cycles=params.x_size + 5)
 
     width = params.x_size
-    height = 500
+    height = 1500
 
     db = ShapeDb()
-    db.add(Circle(cx=40.0, cy=32.0, r=15.0))
-    db.add(Ellipse(cx=50.0, cy=100.0, rx=30.0, ry=25.0))
-    #db.add(Line(x0=0.0, y0=height - 1, x1=width - 1, y1=height - 1))
+    db.add(Circle(cx=50.0, cy=260.0, r=0.5))
+    #db.add(Ellipse(cx=50.0, cy=100.0, rx=30.0, ry=25.0))
+    #db.add(Line(x0=0.0, y0=1200-1, x1=30, y1=1230, width=3.0))
 
     collector = EllipseResultCollector(dut, dut.clk)
     feeder.start()

@@ -14,14 +14,6 @@ class DutParams:
         return y % self.y_size
 
     @classmethod
-    def from_env(cls) -> "DutParams":
-        import os
-
-        x_size = int(os.getenv("LINKRUNCCA_X_SIZE", "200"))
-        y_bits = int(os.getenv("LINKRUNCCA_Y_BITS", "10"))
-        return cls(x_size=x_size, y_bits=y_bits)
-
-    @classmethod
     def from_dut(cls, dut) -> "DutParams":
         try:
             x_size = int(dut.used_x_size.value)

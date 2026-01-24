@@ -27,6 +27,7 @@ else
 fi
 
 ${COMPOSE_CMD} -f "${ROOT_DIR}/sim/cocotb/docker/docker-compose.yml" run --rm --service-ports \
+  -u "$(id -u):$(id -g)" \
   -e COCOTB_DEBUG -e SIM=ghdl \
   ghdl-cocotb \
   python /work/sim/cocotb/runner.py

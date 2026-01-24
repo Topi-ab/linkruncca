@@ -65,8 +65,12 @@ class EllipseResultCollector:
         self._task = None
 
         if y_bits is None:
-            env_bits = os.getenv("LINKRUNCCA_Y_BITS")
-            y_bits = int(env_bits) if env_bits else 10
+            try:
+                y_bits = int(self._dut.used_y_bits.value)
+            except Exception as exc:
+                raise cocotb.result.TestFailure(
+                    "used_y_bits not found on DUT; pass y_bits explicitly."
+                ) from exc
 
         self._y_low_size = (
             int(y_low_size) if y_low_size is not None else 2 ** (y_bits - 1)
