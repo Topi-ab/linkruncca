@@ -9,7 +9,7 @@ package vhdl_linkruncca_pkg is
     -- USER PARAMETERS =>
 
     constant x_size: integer := 200;
-    constant y_bits: integer := 10;
+    constant y_bits: integer := 8;
     
     -- <= USER PARAMETERS.
 
@@ -40,7 +40,6 @@ package vhdl_linkruncca_pkg is
         has_red: std_logic;
         has_green: std_logic;
         has_blue: std_logic;
-        -- neighbour: pixel_neighbour_t;
     end record;
 
     -- This structure holds features for single label.

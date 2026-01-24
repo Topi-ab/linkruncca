@@ -41,10 +41,6 @@ use work.vhdl_linkruncca_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_linkruncca is
-    generic(
-        imwidth: integer := 130;
-        imheight: integer := 130
-    );
     port(
         clk: in std_logic;
         rst: in std_logic;
@@ -56,7 +52,9 @@ entity vhdl_linkruncca is
 end;
 
 architecture rtl of vhdl_linkruncca is
-    constant latency: integer := 3;
+    -- constant latency: integer := 3;
+    constant used_x_size: integer := x_size;
+    constant used_y_bits: integer := y_bits;
 
     -- RAM signals
     signal n_waddr: unsigned(mem_add_bits - 1 downto 0);
@@ -194,7 +192,7 @@ begin
 
     RBHF: entity work.vhdl_row_buf
         generic map(
-            length => imwidth - 2
+            length => used_x_size - 2
         )
         port map(
             clk => clk,
@@ -223,18 +221,6 @@ begin
             r1_out => r1,
             r2_out => r2
         );
-
-    /*RB: entity work.vhdl_row_buf
-        generic map(
-            length => imwidth - 2
-        )
-        port map(
-            clk => clk,
-            datavalid => datavalid,
-            pix_in => C,
-            pix_out1 => r1,
-            pix_out2 => r2
-        );*/
 
     -- Table Reader
     TR: entity work.vhdl_table_reader
@@ -318,11 +304,6 @@ begin
 
       -- Feature Accumulator
       FA: entity work.vhdl_feature_accumulator
-        generic map(
-            imwidth => imwidth,
-            imheight => imheight,
-            latency => latency
-       )
         port map(
             clk => clk, 
             rst => rst, 

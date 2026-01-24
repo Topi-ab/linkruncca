@@ -40,11 +40,6 @@ use work.vhdl_linkruncca_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_feature_accumulator is
-    generic(
-        imwidth: positive := 512;
-        imheight: positive := 512;
-        latency: natural := 3
-    );
     port(
         clk: in std_logic;
         rst: in std_logic;

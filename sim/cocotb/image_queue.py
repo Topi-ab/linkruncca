@@ -1,6 +1,7 @@
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 import cocotb
+from cocotb.clock import Clock
 from cocotb.queue import Queue
 from cocotb.triggers import RisingEdge
 
@@ -39,6 +40,17 @@ class ImageQueueFeeder:
         self._idle_cycles = int(idle_cycles)
         self._queue: Queue = Queue()
         self._task = None
+        self._clock_task = None
+
+    def start_clock(self, period: int = 10, unit: str = "ns") -> None:
+        if self._clock_task is None:
+            clock = Clock(self._clk, period, unit=unit)
+            self._clock_task = cocotb.start_soon(clock.start())
+
+    def stop_clock(self) -> None:
+        if self._clock_task is not None:
+            self._clock_task.cancel()
+            self._clock_task = None
 
     def start(self) -> None:
         if self._task is None:
@@ -65,6 +77,21 @@ class ImageQueueFeeder:
         height: Optional[int] = None,
     ) -> None:
         await self.enqueue(image, width=width, height=height)
+
+    async def reset(self, cycles: int) -> None:
+        self._dut.rst.value = 1
+        self._dut.datavalid.value = 1
+        self._drive_pixel(self._dut, 0, 0, 0, True)
+        for _ in range(int(cycles)):
+            await RisingEdge(self._clk)
+        self._dut.rst.value = 0
+        self._dut.datavalid.value = 0
+        await RisingEdge(self._clk)
+
+    async def idle(self, cycles: int) -> None:
+        for _ in range(int(cycles)):
+            self._drive_pixel(self._dut, 0, 0, 0, False)
+            await RisingEdge(self._clk)
 
     async def _runner(self) -> None:
         while True:
