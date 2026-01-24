@@ -9,6 +9,7 @@ from ellipse_collector import EllipseResultCollector
 from dut_params import DutParams
 from shapes.Circle import Circle
 from shapes.Ellipse import Ellipse
+from shapes.PixelShape import PixelShape
 from shapes.Line import Line
 from shapes.ShapeDb import ShapeDb
 
@@ -28,17 +29,22 @@ async def smoke_linkruncca(dut):
     await feeder.reset(cycles=params.x_size + 5)
 
     width = params.x_size
-    height = 500
+    height = 600
 
     db = ShapeDb()
     shapes = [
-        Circle(cx=50.0, cy=60.0, r=15.0),
-        Circle(cx=60.0, cy=70.0, r=15.0),
-        Circle(cx=0.0, cy=70.0, r=40.0),
+        #Circle(cx=50.0, cy=60.0, r=15.0),
+        #Circle(cx=60.0, cy=70.0, r=15.0),
+        #Circle(cx=0.0, cy=70.0, r=40.0),
 
-        Circle(cx=120.0, cy=200.0, r=15.0),
+        #Circle(cx=120.0, cy=200.0, r=15.0),
 
-        Circle(cx=200.0, cy=300.0, r=15.0),
+        #Circle(cx=200.0, cy=300.0, r=15.0),
+
+        PixelShape(100, 500),
+        PixelShape(101, 501),
+        PixelShape(100, 502),
+
         # Ellipse(cx=50.0, cy=100.0, rx=30.0, ry=25.0),
         # Line(x0=0.0, y0=1200-1, x1=30, y1=1230, width=3.0),
     ]

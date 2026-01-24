@@ -56,7 +56,42 @@ class Shape(ABC):
 
         a = major / 2.0
         b = minor / 2.0
+        if a <= 0.0 and b <= 0.0:
+            return self.GetPixel(cx, cy).in_label == 1
         if a <= 0.0 or b <= 0.0:
+            length = max(a, b)
+            if length <= 0.0:
+                return False
+            rot = math.radians(theta)
+            if a >= b:
+                dx = math.cos(rot)
+                dy = math.sin(rot)
+            else:
+                dx = math.cos(rot + math.pi / 2.0)
+                dy = math.sin(rot + math.pi / 2.0)
+            x0 = int(round(cx - dx * length))
+            y0 = int(round(cy - dy * length))
+            x1 = int(round(cx + dx * length))
+            y1 = int(round(cy + dy * length))
+
+            dx_i = abs(x1 - x0)
+            dy_i = abs(y1 - y0)
+            sx = 1 if x0 < x1 else -1
+            sy = 1 if y0 < y1 else -1
+            err = dx_i - dy_i
+            x, y = x0, y0
+            while True:
+                if self.GetPixel(x, y).in_label == 1:
+                    return True
+                if x == x1 and y == y1:
+                    break
+                e2 = 2 * err
+                if e2 > -dy_i:
+                    err -= dy_i
+                    x += sx
+                if e2 < dx_i:
+                    err += dx_i
+                    y += sy
             return False
 
         y0, y1 = self.y_bounds()

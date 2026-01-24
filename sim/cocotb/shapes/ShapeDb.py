@@ -1,6 +1,7 @@
 from typing import List
 
 from shapes.Shape import Pixel, Shape
+from shapes.PixelShape import PixelShape
 
 
 class ShapeDb:

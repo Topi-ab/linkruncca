@@ -14,6 +14,7 @@ from cocotb_tools.runner import get_runner
 from shapes.Circle import Circle
 from shapes.Ellipse import Ellipse
 from shapes.Line import Line
+from shapes.PixelShape import PixelShape
 
 
 def _split_env(name: str) -> List[str]:
@@ -121,6 +122,7 @@ def run() -> None:
     if detections:
         try:
             import matplotlib.pyplot as plt
+            from matplotlib.patches import Rectangle
         except Exception as exc:
             raise RuntimeError("matplotlib is required for plotting detections") from exc
 
@@ -149,6 +151,8 @@ def run() -> None:
                     shapes.append(Ellipse(**params))
                 elif shape_type == "line":
                     shapes.append(Line(**params))
+                elif shape_type == "pixel":
+                    shapes.append(PixelShape(**params))
 
         if x_size is None:
             x_size_env = os.getenv("LINKRUNCCA_X_SIZE")
@@ -177,6 +181,8 @@ def run() -> None:
             plt.title(f"Detection {idx}")
             plt.axis("equal")
             plt.gca().invert_yaxis()
+            plt.xlim(min(xr) - 2.0, max(xr) + 2.0)
+            plt.ylim(max(yr) + 2.0, min(yr) - 2.0)
             plt.grid(True, linestyle="--", alpha=0.3)
 
             if shapes:
@@ -200,7 +206,7 @@ def run() -> None:
                         angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
                         xs = [cx_s + r * math.cos(t) for t in angles]
                         ys = [cy_s + r * math.sin(t) for t in angles]
-                        plt.fill(xs, ys, color=color, alpha=0.35)
+                        plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
                     elif shape_type == "ellipse":
                         cx_s = params.get("cx", 0.0)
                         cy_s = params.get("cy", 0.0)
@@ -209,15 +215,29 @@ def run() -> None:
                         angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
                         xs = [cx_s + rx * math.cos(t) for t in angles]
                         ys = [cy_s + ry * math.sin(t) for t in angles]
-                        plt.fill(xs, ys, color=color, alpha=0.35)
+                        plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
                     elif shape_type == "line":
                         x0 = params.get("x0", 0.0)
                         y0 = params.get("y0", 0.0)
                         x1 = params.get("x1", 0.0)
                         y1 = params.get("y1", 0.0)
-                        plt.plot([x0, x1], [y0, y1], color=color, linewidth=2)
+                        plt.plot([x0, x1], [y0, y1], color=color, linewidth=2, zorder=1)
+                    elif shape_type == "pixel":
+                        px = params.get("x", 0.0)
+                        py = params.get("y", 0.0)
+                        plt.gca().add_patch(
+                            Rectangle(
+                                (px - 0.5, py - 0.5),
+                                1.0,
+                                1.0,
+                                facecolor=color,
+                                edgecolor=color,
+                                linewidth=0.0,
+                                zorder=2,
+                            )
+                        )
 
-            plt.plot(xr, yr, color="black")
+            plt.plot(xr, yr, color="black", zorder=3)
             if x_size is not None and xr:
                 x_min = min(xr)
                 x_max = max(xr)
