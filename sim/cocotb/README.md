@@ -16,6 +16,26 @@ NVC (Docker):
 ./run_nvc_docker.sh
 ```
 
+## Shapes
+
+Shapes are defined in `sim/cocotb/shapes/` and added in `sim/cocotb/test_linkruncca.py`:
+
+```python
+from shapes.Circle import Circle
+from shapes.Ellipse import Ellipse
+from shapes.Line import Line
+from shapes.PixelShape import PixelShape
+
+shapes = [
+    Circle(cx=50.0, cy=60.0, r=15.0),
+    Ellipse(cx=50.0, cy=100.0, rx=30.0, ry=25.0),
+    Line(x0=0.0, y0=199.0, x1=30.0, y1=230.0, width=3.0),
+    PixelShape(x=100, y=500),
+]
+```
+
+Shapes are written to `sim/cocotb/sim_build/results/shapes.json`, and detections are written to `sim/cocotb/sim_build/results/detections.json`.
+
 ## Build Images
 
 Build both containers:
@@ -64,6 +84,40 @@ Notes:
 - `TOPLEVEL`, `COCOTB_TEST_MODULES`/`TEST_MODULE`
 - `LINKRUNCCA_PKG`, `LINKRUNCCA_IMWIDTH`, `LINKRUNCCA_IMHEIGHT`
 
+## GUI Plots
+
+Plots are shown by `runner.py` after the simulation completes. To display GUI windows from Docker:
+
+1) Allow local X11 connections:
+
+```bash
+xhost +local:
+```
+
+2) Run the simulation:
+
+```bash
+./run_nvc_docker.sh
+```
+
+3) Revoke access when done:
+
+```bash
+xhost -local:
+```
+
+Notes:
+- The run scripts set `DISPLAY`, mount `/tmp/.X11-unix`, and set `MPLBACKEND=TkAgg`.
+- If you don't need GUI, you can disable plotting in `sim/cocotb/runner.py`.
+
 ## Notes
 
 - GHDL VPI does not expose VHDL record ports; use NVC or add a wrapper with flat ports for cocotb access.
+
+## Example Results
+
+![Detection 0](doc/images/Detection_0.png)
+![Detection 1](doc/images/Detection_1.png)
+![Detection 2](doc/images/Detection_2.png)
+![Detection 3](doc/images/Detection_3.png)
+![Detection 4](doc/images/Detection_4.png)
