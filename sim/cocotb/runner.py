@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
+import math
 import os
+import signal
 import shlex
 from pathlib import Path
 from typing import Dict, List
 
 from cocotb_tools.runner import get_runner
+
+from shapes.Circle import Circle
+from shapes.Ellipse import Ellipse
+from shapes.Line import Line
 
 
 def _split_env(name: str) -> List[str]:
@@ -109,6 +116,133 @@ def run() -> None:
         build_dir=build_dir,
         waves=True,
     )
+
+    detections = list(Path(build_dir).rglob("detections.json"))
+    if detections:
+        try:
+            import matplotlib.pyplot as plt
+        except Exception as exc:
+            raise RuntimeError("matplotlib is required for plotting detections") from exc
+
+        with open(detections[0], "r", encoding="utf-8") as handle:
+            items = json.load(handle)
+
+        shapes_files = list(Path(build_dir).rglob("shapes.json"))
+        shapes = []
+        shape_entries = []
+        x_size = None
+        if shapes_files:
+            with open(shapes_files[0], "r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+            shape_items = payload.get("shapes", [])
+            meta = payload.get("meta", {})
+            if "x_size" in meta:
+                x_size = float(meta["x_size"])
+            for entry in shape_items:
+                shape_type = entry.get("type")
+                params = dict(entry.get("params", {}))
+                params.pop("kind", None)
+                shape_entries.append(entry)
+                if shape_type == "circle":
+                    shapes.append(Circle(**params))
+                elif shape_type == "ellipse":
+                    shapes.append(Ellipse(**params))
+                elif shape_type == "line":
+                    shapes.append(Line(**params))
+
+        if x_size is None:
+            x_size_env = os.getenv("LINKRUNCCA_X_SIZE")
+            x_size = float(x_size_env) if x_size_env else None
+
+        for idx, item in enumerate(items):
+            cx = float(item.get("cx", 0.0))
+            cy = float(item.get("cy", 0.0))
+            major = float(item.get("major", 0.0))
+            minor = float(item.get("minor", 0.0))
+            theta = float(item.get("theta", 0.0))
+
+            a = major / 2.0
+            b = minor / 2.0
+            angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
+            x = [a * math.cos(t) for t in angles]
+            y = [b * math.sin(t) for t in angles]
+
+            rot = math.radians(theta)
+            cos_r = math.cos(rot)
+            sin_r = math.sin(rot)
+            xr = [cx + xi * cos_r - yi * sin_r for xi, yi in zip(x, y)]
+            yr = [cy + xi * sin_r + yi * cos_r for xi, yi in zip(x, y)]
+
+            plt.figure()
+            plt.title(f"Detection {idx}")
+            plt.axis("equal")
+            plt.gca().invert_yaxis()
+            plt.grid(True, linestyle="--", alpha=0.3)
+
+            if shapes:
+                overlaps = [s.kind for s in shapes if s.intersects_ellipse(item)]
+                if overlaps:
+                    print(f"Detection {idx} overlaps shapes: {', '.join(overlaps)}")
+                else:
+                    print(f"Detection {idx} overlaps shapes: none")
+
+                colors = ["tab:blue", "tab:orange"]
+                for shape_idx, (shape, entry) in enumerate(zip(shapes, shape_entries)):
+                    if not shape.intersects_ellipse(item):
+                        continue
+                    color = colors[shape_idx % len(colors)]
+                    params = entry.get("params", {})
+                    shape_type = entry.get("type")
+                    if shape_type == "circle":
+                        cx_s = params.get("cx", 0.0)
+                        cy_s = params.get("cy", 0.0)
+                        r = params.get("r", 0.0)
+                        angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
+                        xs = [cx_s + r * math.cos(t) for t in angles]
+                        ys = [cy_s + r * math.sin(t) for t in angles]
+                        plt.fill(xs, ys, color=color, alpha=0.35)
+                    elif shape_type == "ellipse":
+                        cx_s = params.get("cx", 0.0)
+                        cy_s = params.get("cy", 0.0)
+                        rx = params.get("rx", 0.0)
+                        ry = params.get("ry", 0.0)
+                        angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
+                        xs = [cx_s + rx * math.cos(t) for t in angles]
+                        ys = [cy_s + ry * math.sin(t) for t in angles]
+                        plt.fill(xs, ys, color=color, alpha=0.35)
+                    elif shape_type == "line":
+                        x0 = params.get("x0", 0.0)
+                        y0 = params.get("y0", 0.0)
+                        x1 = params.get("x1", 0.0)
+                        y1 = params.get("y1", 0.0)
+                        plt.plot([x0, x1], [y0, y1], color=color, linewidth=2)
+
+            plt.plot(xr, yr, color="black")
+            if x_size is not None and xr:
+                x_min = min(xr)
+                x_max = max(xr)
+                if x_min <= 0.0:
+                    print(f"Detection {idx} left edge hit: x_min={x_min:.3f}")
+                    plt.axvline(0.0, color="black", linestyle=":")
+                if x_max >= x_size:
+                    print(f"Detection {idx} right edge hit: x_max={x_max:.3f} x_size={x_size:.3f}")
+                    plt.axvline(x_size, color="black", linestyle=":")
+
+        def _sigint_handler(_signum, _frame):
+            plt.close("all")
+            raise SystemExit(130)
+
+        old_handler = signal.signal(signal.SIGINT, _sigint_handler)
+        try:
+            plt.show(block=False)
+            while True:
+                if not plt.get_fignums():
+                    break
+                plt.pause(0.1)
+        except KeyboardInterrupt:
+            plt.close("all")
+        finally:
+            signal.signal(signal.SIGINT, old_handler)
 
 
 if __name__ == "__main__":

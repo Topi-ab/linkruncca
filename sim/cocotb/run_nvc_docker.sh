@@ -28,6 +28,9 @@ fi
 
 ${COMPOSE_CMD} -f "${ROOT_DIR}/sim/cocotb/docker/docker-compose.yml" run --rm --service-ports \
   -u "$(id -u):$(id -g)" \
+  -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -e HOME=/work/sim/cocotb/sim_build/tmp \
+  -e MPLBACKEND=TkAgg \
   -e COCOTB_DEBUG -e SIM=nvc \
   nvc-cocotb \
   python /work/sim/cocotb/runner.py

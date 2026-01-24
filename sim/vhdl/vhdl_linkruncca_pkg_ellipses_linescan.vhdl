@@ -9,7 +9,7 @@ package vhdl_linkruncca_pkg is
     -- USER PARAMETERS =>
 
     constant x_size: integer := 200;
-    constant y_bits: integer := 8;
+    constant y_bits: integer := 10;
     
     -- <= USER PARAMETERS.
 
