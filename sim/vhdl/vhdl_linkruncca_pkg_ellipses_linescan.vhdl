@@ -275,12 +275,12 @@ package body vhdl_linkruncca_pkg is
     begin
         r := a;
 
-        r.x_left := min(r.x_left, b.x_left);
-        r.x_right := max(r.x_right, b.x_right);
-        r.y_top_seg0 := min(r.y_top_seg0, b.y_top_seg0);
-        r.y_top_seg1 := min(r.y_top_seg1, b.y_top_seg1);
-        r.y_bottom_seg0 := max(r.y_bottom_seg0, b.y_bottom_seg0);
-        r.y_bottom_seg1 := max(r.y_bottom_seg1, b.y_bottom_seg1);
+        r.x_left := umin(r.x_left, b.x_left);
+        r.x_right := umax(r.x_right, b.x_right);
+        r.y_top_seg0 := umin(r.y_top_seg0, b.y_top_seg0);
+        r.y_top_seg1 := umin(r.y_top_seg1, b.y_top_seg1);
+        r.y_bottom_seg0 := umax(r.y_bottom_seg0, b.y_bottom_seg0);
+        r.y_bottom_seg1 := umax(r.y_bottom_seg1, b.y_bottom_seg1);
         r.x2_sum := r.x2_sum + b.x2_sum;
 
         r.ylow2_sum := r.ylow2_sum + b.ylow2_sum;

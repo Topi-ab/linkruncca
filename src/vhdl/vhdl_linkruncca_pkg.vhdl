@@ -32,8 +32,8 @@ package vhdl_linkruncca_pkg is
     function linkruncca_feature_empty_val return linkruncca_feature_t;
     function linkruncca_feature_collect(a: linkruncca_collect_t) return linkruncca_feature_t;
     function linkruncca_feature_merge(a: linkruncca_feature_t; b: linkruncca_feature_t) return linkruncca_feature_t;
-    function min(a: unsigned; b: unsigned) return unsigned;
-    function max(a: unsigned; b: unsigned) return unsigned;
+    function umin(a: unsigned; b: unsigned) return unsigned;
+    function umax(a: unsigned; b: unsigned) return unsigned;
 end;
 
 package body vhdl_linkruncca_pkg is
@@ -73,10 +73,10 @@ package body vhdl_linkruncca_pkg is
     begin
         r := a;
 
-        r.x_left := min(r.x_left, b.x_left);
-        r.x_right := max(r.x_right, b.x_right);
-        r.y_top := min(r.y_top, b.y_top);
-        r.y_bottom := max(r.y_bottom, b.y_bottom);
+        r.x_left := umin(r.x_left, b.x_left);
+        r.x_right := umax(r.x_right, b.x_right);
+        r.y_top := umin(r.y_top, b.y_top);
+        r.y_bottom := umax(r.y_bottom, b.y_bottom);
         r.has_red := r.has_red or b.has_red;
         r.has_green := r.has_green or b.has_green;
         r.has_blue := r.has_blue or b.has_blue;
@@ -84,7 +84,7 @@ package body vhdl_linkruncca_pkg is
         return r;
     end;
 
-    function min(a: unsigned; b: unsigned) return unsigned is
+    function umin(a: unsigned; b: unsigned) return unsigned is
     begin
         if a < b then
             return a;
@@ -93,7 +93,7 @@ package body vhdl_linkruncca_pkg is
         end if;
     end;
 
-    function max(a: unsigned; b: unsigned) return unsigned is
+    function umax(a: unsigned; b: unsigned) return unsigned is
     begin
         if a > b then
             return a;

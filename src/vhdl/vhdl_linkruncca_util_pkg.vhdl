@@ -5,7 +5,7 @@ use ieee.math_real.all;
 
 package vhdl_linkruncca_util_pkg is
     function fit(a: unsigned; extra_bits: natural := 0) return unsigned;
-    function fit(a: integer; extra_bits: integer := 0) return unsigned;
+    function fit(a: integer; extra_bits: natural := 0) return unsigned;
     function sum_x(x1, x2: integer) return integer;
     function sum_x(x1, x2: integer) return unsigned;
     function sum_x2(x1, x2: integer) return integer;
@@ -14,8 +14,8 @@ package vhdl_linkruncca_util_pkg is
     function sum_xy(x1, x2, y1, y2: integer) return unsigned;
     function max2bits(a: integer) return integer;
     function max2bits(a: unsigned) return integer;
-    function min(a, b: unsigned) return unsigned;
-    function max(a, b: unsigned) return unsigned;
+    function umin(a, b: unsigned) return unsigned;
+    function umax(a, b: unsigned) return unsigned;
 
     type bbox_t is record
         x_left: integer;
@@ -117,7 +117,7 @@ package body vhdl_linkruncca_util_pkg is
         return max2bits(to_unsigned(a, 32));
     end;
 
-    function min(a, b: unsigned) return unsigned is
+    function umin(a, b: unsigned) return unsigned is
     begin
         if a < b then
             return a;
@@ -126,7 +126,7 @@ package body vhdl_linkruncca_util_pkg is
         end if;
     end;
 
-    function max(a, b: unsigned) return unsigned is
+    function umax(a, b: unsigned) return unsigned is
     begin
         if a > b then
             return a;
