@@ -143,7 +143,9 @@ begin
     acc_sync_pr: process(clk, rst)
     begin
         if rising_edge(clk) then
-            d_acc <= d;
+            if datavalid = '1' then
+                d_acc <= d;
+            end if;
         end if;
 
         if rst = '1' then
