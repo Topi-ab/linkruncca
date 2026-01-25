@@ -133,6 +133,10 @@ def run() -> None:
             import numpy as np
         except Exception as exc:
             raise RuntimeError("numpy is required for pixel map generation") from exc
+        try:
+            import cv2
+        except Exception as exc:
+            raise RuntimeError("opencv-python is required for perimeter calculation") from exc
 
         if show_plots:
             try:
@@ -214,13 +218,19 @@ def run() -> None:
             y_plot_max = math.ceil(max(yr) + 2.0)
 
             if show_plots:
-                plt.figure()
-                plt.title(f"Detection {idx}")
-                plt.axis("equal")
-                plt.gca().invert_yaxis()
-                plt.xlim(x_plot_min, x_plot_max)
-                plt.ylim(y_plot_max, y_plot_min)
-                plt.grid(True, linestyle="--", alpha=0.3)
+                fig, (ax, ax_text) = plt.subplots(
+                    1,
+                    2,
+                    gridspec_kw={"width_ratios": [3, 2]},
+                    constrained_layout=True,
+                )
+                ax.set_title(f"Detection {idx}")
+                ax.set_aspect("equal", adjustable="box")
+                ax.invert_yaxis()
+                ax.set_xlim(x_plot_min, x_plot_max)
+                ax.set_ylim(y_plot_max, y_plot_min)
+                ax.grid(True, linestyle="--", alpha=0.3)
+                ax_text.axis("off")
 
             if shapes:
                 overlapping_shapes = []
@@ -239,6 +249,68 @@ def run() -> None:
                     )
                 else:
                     print(f"Detection {idx} overlaps shapes: none")
+
+                if show_plots and x_size is not None and overlap_flags:
+                    x_min = x_plot_min
+                    x_max = x_plot_max
+                    y_min = y_plot_min
+                    y_max = y_plot_max
+                    for entry, hit in zip(shape_entries, overlap_flags):
+                        if not hit:
+                            continue
+                        params = entry.get("params", {})
+                        shape_type = entry.get("type")
+                        if shape_type == "circle":
+                            cx_s = float(params.get("cx", 0.0))
+                            cy_s = float(params.get("cy", 0.0))
+                            r = float(params.get("r", 0.0))
+                            sx0 = cx_s - r
+                            sx1 = cx_s + r
+                            sy0 = cy_s - r
+                            sy1 = cy_s + r
+                        elif shape_type == "ellipse":
+                            cx_s = float(params.get("cx", 0.0))
+                            cy_s = float(params.get("cy", 0.0))
+                            rx = float(params.get("rx", 0.0))
+                            ry = float(params.get("ry", 0.0))
+                            sx0 = cx_s - rx
+                            sx1 = cx_s + rx
+                            sy0 = cy_s - ry
+                            sy1 = cy_s + ry
+                        elif shape_type == "line":
+                            x0 = float(params.get("x0", 0.0))
+                            y0 = float(params.get("y0", 0.0))
+                            x1 = float(params.get("x1", 0.0))
+                            y1 = float(params.get("y1", 0.0))
+                            width = float(params.get("width", 0.0))
+                            half = width / 2.0
+                            sx0 = min(x0, x1) - half
+                            sx1 = max(x0, x1) + half
+                            sy0 = min(y0, y1) - half
+                            sy1 = max(y0, y1) + half
+                        elif shape_type == "pixel":
+                            px = float(params.get("x", 0.0))
+                            py = float(params.get("y", 0.0))
+                            sx0 = px - 0.5
+                            sx1 = px + 0.5
+                            sy0 = py - 0.5
+                            sy1 = py + 0.5
+                        else:
+                            continue
+                        if sx1 < 0.0 or sx0 > x_size:
+                            continue
+                        sx0 = max(sx0, 0.0)
+                        sx1 = min(sx1, x_size)
+                        x_min = min(x_min, math.floor(sx0) - 2)
+                        x_max = max(x_max, math.ceil(sx1) + 2)
+                        y_min = min(y_min, math.floor(sy0) - 2)
+                        y_max = max(y_max, math.ceil(sy1) + 2)
+                    x_plot_min = x_min
+                    x_plot_max = x_max
+                    y_plot_min = y_min
+                    y_plot_max = y_max
+                    ax.set_xlim(x_plot_min, x_plot_max)
+                    ax.set_ylim(y_plot_max, y_plot_min)
 
                 colors = [
                     "tab:blue",
@@ -268,7 +340,7 @@ def run() -> None:
                         xs = [cx_s + r * math.cos(t) for t in angles]
                         ys = [cy_s + r * math.sin(t) for t in angles]
                         if show_plots:
-                            plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
+                            ax.fill(xs, ys, color=color, alpha=0.35, zorder=1)
                     elif shape_type == "ellipse":
                         cx_s = params.get("cx", 0.0)
                         cy_s = params.get("cy", 0.0)
@@ -278,14 +350,14 @@ def run() -> None:
                         xs = [cx_s + rx * math.cos(t) for t in angles]
                         ys = [cy_s + ry * math.sin(t) for t in angles]
                         if show_plots:
-                            plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
+                            ax.fill(xs, ys, color=color, alpha=0.35, zorder=1)
                     elif shape_type == "line":
                         x0 = params.get("x0", 0.0)
                         y0 = params.get("y0", 0.0)
                         x1 = params.get("x1", 0.0)
                         y1 = params.get("y1", 0.0)
                         if show_plots:
-                            plt.plot(
+                            ax.plot(
                                 [x0, x1],
                                 [y0, y1],
                                 color=color,
@@ -296,7 +368,7 @@ def run() -> None:
                         px = params.get("x", 0.0)
                         py = params.get("y", 0.0)
                         if show_plots:
-                            plt.gca().add_patch(
+                            ax.add_patch(
                                 Rectangle(
                                     (px - 0.5, py - 0.5),
                                     1.0,
@@ -309,39 +381,62 @@ def run() -> None:
                             )
 
                 detected_pixels = int(item.get("pixels", 0))
+                detected_perimeter = float(item.get("perimeter", 0.0))
                 ref_pixels = 0
+                ref_perimeter = 0.0
                 if overlapping_shapes and x_size is not None and height is not None:
                     overlap_db = ShapeDb()
                     for shape in overlapping_shapes:
                         overlap_db.add(shape)
                     width = int(x_size)
                     if width > 0 and height > 0:
+                        ref_bitmap = np.zeros((height, width), dtype=np.uint8)
                         for y in range(height):
                             for x in range(width):
                                 if overlap_db.pixel_at(x, y).in_label:
                                     ref_pixels += 1
+                                    ref_bitmap[y, x] = 255
+                        contours_info = cv2.findContours(
+                            ref_bitmap, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+                        )
+                        contours = (
+                            contours_info[0]
+                            if len(contours_info) == 2
+                            else contours_info[1]
+                        )
+                        for contour in contours:
+                            ref_perimeter += cv2.arcLength(contour, True)
 
                 print(
-                    f"Detection {idx} pixels: detected={detected_pixels}, ref={ref_pixels}"
+                    "Detection "
+                    f"{idx} pixels: detected={detected_pixels}, "
+                    f"ref={ref_pixels}, "
+                    f"detected_perimeter={detected_perimeter:.2f}, "
+                    f"ref_perimeter={ref_perimeter:.2f}"
                 )
                 if show_plots:
-                    plt.text(
-                        0.02,
-                        0.98,
-                        f"detected_pixels={detected_pixels}, ref_pixels={ref_pixels}",
-                        transform=plt.gca().transAxes,
+                    summary = (
+                        f"detected_pixels: {detected_pixels}\n"
+                        f"ref_pixels: {ref_pixels}\n"
+                        f"detected_perimeter: {detected_perimeter:.2f}\n"
+                        f"ref_perimeter: {ref_perimeter:.2f}"
+                    )
+                    ax_text.text(
+                        0.0,
+                        1.0,
+                        summary,
+                        transform=ax_text.transAxes,
                         ha="left",
                         va="top",
-                        fontsize=9,
-                        bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
-                        zorder=4,
+                        fontsize=8,
+                        wrap=True,
                     )
 
             if show_plots:
-                plt.plot(xr, yr, color="black", zorder=3)
+                ax.plot(xr, yr, color="black", zorder=3)
                 if x_size is not None:
-                    plt.axvline(0.0, color="black", linestyle=":")
-                    plt.axvline(x_size, color="black", linestyle=":")
+                    ax.axvline(0.0, color="black", linestyle=":")
+                    ax.axvline(x_size, color="black", linestyle=":")
 
         if show_plots:
             def _sigint_handler(_signum, _frame):
