@@ -15,6 +15,7 @@ from shapes.Circle import Circle
 from shapes.Ellipse import Ellipse
 from shapes.Line import Line
 from shapes.PixelShape import PixelShape
+from shapes.ShapeDb import ShapeDb
 
 
 def _split_env(name: str) -> List[str]:
@@ -29,6 +30,13 @@ def _env_int(name: str) -> int | None:
     if value is None or value == "":
         return None
     return int(value, 0)
+
+
+def _env_bool(name: str, default: bool = True) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _default_sources(root: Path, hdl_toplevel: str) -> List[Path]:
@@ -120,11 +128,18 @@ def run() -> None:
 
     detections = list(Path(build_dir).rglob("detections.json"))
     if detections:
+        show_plots = not _env_bool("DISABLE_PLOT", False)
         try:
-            import matplotlib.pyplot as plt
-            from matplotlib.patches import Rectangle
+            import numpy as np
         except Exception as exc:
-            raise RuntimeError("matplotlib is required for plotting detections") from exc
+            raise RuntimeError("numpy is required for pixel map generation") from exc
+
+        if show_plots:
+            try:
+                import matplotlib.pyplot as plt
+                from matplotlib.patches import Rectangle
+            except Exception as exc:
+                raise RuntimeError("matplotlib is required for plotting detections") from exc
 
         with open(detections[0], "r", encoding="utf-8") as handle:
             items = json.load(handle)
@@ -133,6 +148,7 @@ def run() -> None:
         shapes = []
         shape_entries = []
         x_size = None
+        height = None
         if shapes_files:
             with open(shapes_files[0], "r", encoding="utf-8") as handle:
                 payload = json.load(handle)
@@ -140,6 +156,8 @@ def run() -> None:
             meta = payload.get("meta", {})
             if "x_size" in meta:
                 x_size = float(meta["x_size"])
+            if "height" in meta:
+                height = int(meta["height"])
             for entry in shape_items:
                 shape_type = entry.get("type")
                 params = dict(entry.get("params", {}))
@@ -157,6 +175,19 @@ def run() -> None:
         if x_size is None:
             x_size_env = os.getenv("LINKRUNCCA_X_SIZE")
             x_size = float(x_size_env) if x_size_env else None
+        if height is None:
+            height_env = os.getenv("LINKRUNCCA_HEIGHT")
+            height = int(height_env) if height_env else None
+
+        shape_db = ShapeDb()
+        for shape in shapes:
+            shape_db.add(shape)
+
+        if shapes and (x_size is None or height is None):
+            raise RuntimeError(
+                "shapes.json meta x_size and height (or LINKRUNCCA_HEIGHT) "
+                "are required for ref pixel map generation"
+            )
 
         for idx, item in enumerate(items):
             cx = float(item.get("cx", 0.0))
@@ -177,18 +208,35 @@ def run() -> None:
             xr = [cx + xi * cos_r - yi * sin_r for xi, yi in zip(x, y)]
             yr = [cy + xi * sin_r + yi * cos_r for xi, yi in zip(x, y)]
 
-            plt.figure()
-            plt.title(f"Detection {idx}")
-            plt.axis("equal")
-            plt.gca().invert_yaxis()
-            plt.xlim(min(xr) - 2.0, max(xr) + 2.0)
-            plt.ylim(max(yr) + 2.0, min(yr) - 2.0)
-            plt.grid(True, linestyle="--", alpha=0.3)
+            x_plot_min = math.floor(min(xr) - 2.0)
+            x_plot_max = math.ceil(max(xr) + 2.0)
+            y_plot_min = math.floor(min(yr) - 2.0)
+            y_plot_max = math.ceil(max(yr) + 2.0)
+
+            if show_plots:
+                plt.figure()
+                plt.title(f"Detection {idx}")
+                plt.axis("equal")
+                plt.gca().invert_yaxis()
+                plt.xlim(x_plot_min, x_plot_max)
+                plt.ylim(y_plot_max, y_plot_min)
+                plt.grid(True, linestyle="--", alpha=0.3)
 
             if shapes:
-                overlaps = [s.kind for s in shapes if s.intersects_ellipse(item)]
-                if overlaps:
-                    print(f"Detection {idx} overlaps shapes: {', '.join(overlaps)}")
+                overlapping_shapes = []
+                overlap_kinds = []
+                overlap_flags = []
+                for shape, entry in zip(shapes, shape_entries):
+                    hit = shape.intersects_ellipse(item)
+                    overlap_flags.append(hit)
+                    if hit:
+                        overlapping_shapes.append(shape)
+                        overlap_kinds.append(shape)
+                if overlap_kinds:
+                    print(
+                        "Detection "
+                        f"{idx} overlaps shapes: {', '.join(s.kind for s in overlap_kinds)}"
+                    )
                 else:
                     print(f"Detection {idx} overlaps shapes: none")
 
@@ -204,10 +252,12 @@ def run() -> None:
                     "tab:olive",
                     "tab:cyan",
                 ]
-                for shape_idx, (shape, entry) in enumerate(zip(shapes, shape_entries)):
-                    if not shape.intersects_ellipse(item):
+                plot_idx = 0
+                for shape, entry, hit in zip(shapes, shape_entries, overlap_flags):
+                    if not hit:
                         continue
-                    color = colors[shape_idx % len(colors)]
+                    color = colors[plot_idx % len(colors)]
+                    plot_idx += 1
                     params = entry.get("params", {})
                     shape_type = entry.get("type")
                     if shape_type == "circle":
@@ -217,7 +267,8 @@ def run() -> None:
                         angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
                         xs = [cx_s + r * math.cos(t) for t in angles]
                         ys = [cy_s + r * math.sin(t) for t in angles]
-                        plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
+                        if show_plots:
+                            plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
                     elif shape_type == "ellipse":
                         cx_s = params.get("cx", 0.0)
                         cy_s = params.get("cy", 0.0)
@@ -226,54 +277,88 @@ def run() -> None:
                         angles = [i * 2.0 * math.pi / 360.0 for i in range(361)]
                         xs = [cx_s + rx * math.cos(t) for t in angles]
                         ys = [cy_s + ry * math.sin(t) for t in angles]
-                        plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
+                        if show_plots:
+                            plt.fill(xs, ys, color=color, alpha=0.35, zorder=1)
                     elif shape_type == "line":
                         x0 = params.get("x0", 0.0)
                         y0 = params.get("y0", 0.0)
                         x1 = params.get("x1", 0.0)
                         y1 = params.get("y1", 0.0)
-                        plt.plot([x0, x1], [y0, y1], color=color, linewidth=2, zorder=1)
+                        if show_plots:
+                            plt.plot(
+                                [x0, x1],
+                                [y0, y1],
+                                color=color,
+                                linewidth=2,
+                                zorder=1,
+                            )
                     elif shape_type == "pixel":
                         px = params.get("x", 0.0)
                         py = params.get("y", 0.0)
-                        plt.gca().add_patch(
-                            Rectangle(
-                                (px - 0.5, py - 0.5),
-                                1.0,
-                                1.0,
-                                facecolor=color,
-                                edgecolor=color,
-                                linewidth=0.0,
-                                zorder=2,
+                        if show_plots:
+                            plt.gca().add_patch(
+                                Rectangle(
+                                    (px - 0.5, py - 0.5),
+                                    1.0,
+                                    1.0,
+                                    facecolor=color,
+                                    edgecolor=color,
+                                    linewidth=0.0,
+                                    zorder=2,
+                                )
                             )
-                        )
 
-            plt.plot(xr, yr, color="black", zorder=3)
-            if x_size is not None and xr:
-                x_min = min(xr)
-                x_max = max(xr)
-                if x_min <= 0.0:
-                    print(f"Detection {idx} left edge hit: x_min={x_min:.3f}")
+                detected_pixels = int(item.get("pixels", 0))
+                ref_pixels = 0
+                if overlapping_shapes and x_size is not None and height is not None:
+                    overlap_db = ShapeDb()
+                    for shape in overlapping_shapes:
+                        overlap_db.add(shape)
+                    width = int(x_size)
+                    if width > 0 and height > 0:
+                        for y in range(height):
+                            for x in range(width):
+                                if overlap_db.pixel_at(x, y).in_label:
+                                    ref_pixels += 1
+
+                print(
+                    f"Detection {idx} pixels: detected={detected_pixels}, ref={ref_pixels}"
+                )
+                if show_plots:
+                    plt.text(
+                        0.02,
+                        0.98,
+                        f"detected_pixels={detected_pixels}, ref_pixels={ref_pixels}",
+                        transform=plt.gca().transAxes,
+                        ha="left",
+                        va="top",
+                        fontsize=9,
+                        bbox=dict(facecolor="white", alpha=0.7, edgecolor="none"),
+                        zorder=4,
+                    )
+
+            if show_plots:
+                plt.plot(xr, yr, color="black", zorder=3)
+                if x_size is not None:
                     plt.axvline(0.0, color="black", linestyle=":")
-                if x_max >= x_size:
-                    print(f"Detection {idx} right edge hit: x_max={x_max:.3f} x_size={x_size:.3f}")
                     plt.axvline(x_size, color="black", linestyle=":")
 
-        def _sigint_handler(_signum, _frame):
-            plt.close("all")
-            raise SystemExit(130)
+        if show_plots:
+            def _sigint_handler(_signum, _frame):
+                plt.close("all")
+                raise SystemExit(130)
 
-        old_handler = signal.signal(signal.SIGINT, _sigint_handler)
-        try:
-            plt.show(block=False)
-            while True:
-                if not plt.get_fignums():
-                    break
-                plt.pause(0.1)
-        except KeyboardInterrupt:
-            plt.close("all")
-        finally:
-            signal.signal(signal.SIGINT, old_handler)
+            old_handler = signal.signal(signal.SIGINT, _sigint_handler)
+            try:
+                plt.show(block=False)
+                while True:
+                    if not plt.get_fignums():
+                        break
+                    plt.pause(0.1)
+            except KeyboardInterrupt:
+                plt.close("all")
+            finally:
+                signal.signal(signal.SIGINT, old_handler)
 
 
 if __name__ == "__main__":

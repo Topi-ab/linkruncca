@@ -31,6 +31,6 @@ ${COMPOSE_CMD} -f "${ROOT_DIR}/sim/cocotb/docker/docker-compose.yml" run --rm --
   -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
   -e HOME=/work/sim/cocotb/sim_build/tmp \
   -e MPLBACKEND=TkAgg \
-  -e COCOTB_DEBUG -e SIM=nvc \
+  -e COCOTB_DEBUG -e SIM=nvc -e DISABLE_PLOT \
   nvc-cocotb \
   python /work/sim/cocotb/runner.py

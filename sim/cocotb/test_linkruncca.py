@@ -75,7 +75,7 @@ async def smoke_linkruncca(dut):
 
     shapes_path = os.path.join(results_dir, "shapes.json")
     shapes_payload = {
-        "meta": {"x_size": params.x_size},
+        "meta": {"x_size": params.x_size, "height": height},
         "shapes": [],
     }
     for shape in shapes:

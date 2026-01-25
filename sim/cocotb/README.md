@@ -108,7 +108,11 @@ xhost -local:
 
 Notes:
 - The run scripts set `DISPLAY`, mount `/tmp/.X11-unix`, and set `MPLBACKEND=TkAgg`.
-- If you don't need GUI, you can disable plotting in `sim/cocotb/runner.py`.
+- To disable plot windows, run with `DISABLE_PLOT=1`, for example:
+
+```bash
+DISABLE_PLOT=1 ./run_nvc_docker.sh
+```
 
 ## Notes
 

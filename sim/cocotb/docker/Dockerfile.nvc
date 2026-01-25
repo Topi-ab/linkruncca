@@ -13,6 +13,6 @@ RUN apt-get update && \
 
 RUN python3 -m venv /opt/venv && \
     /opt/venv/bin/python -m pip install --upgrade pip && \
-    /opt/venv/bin/python -m pip install cocotb debugpy matplotlib
+    /opt/venv/bin/python -m pip install cocotb debugpy matplotlib numpy opencv-python-headless
 
 ENV PATH="/opt/venv/bin:${PATH}"

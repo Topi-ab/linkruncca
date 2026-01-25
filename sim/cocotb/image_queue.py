@@ -78,15 +78,25 @@ class ImageQueueFeeder:
     ) -> None:
         await self.enqueue(image, width=width, height=height)
 
-    async def reset(self, cycles: int) -> None:
+    async def reset(
+        self,
+        cycles: int,
+        hold_low_cycles: int = 5,
+        post_idle_cycles: int = 5,
+    ) -> None:
         self._dut.rst.value = 1
         self._dut.datavalid.value = 1
         self._drive_pixel(self._dut, 0, 0, 0, True)
         for _ in range(int(cycles)):
             await RisingEdge(self._clk)
-        self._dut.rst.value = 0
         self._dut.datavalid.value = 0
-        await RisingEdge(self._clk)
+        for _ in range(int(hold_low_cycles)):
+            self._drive_pixel(self._dut, 0, 0, 0, False)
+            await RisingEdge(self._clk)
+        self._dut.rst.value = 0
+        for _ in range(int(post_idle_cycles)):
+            self._drive_pixel(self._dut, 0, 0, 0, False)
+            await RisingEdge(self._clk)
 
     async def idle(self, cycles: int) -> None:
         for _ in range(int(cycles)):
@@ -95,6 +105,7 @@ class ImageQueueFeeder:
 
     async def _runner(self) -> None:
         while True:
+            self._drive_pixel(self._dut, 0, 0, 0, False)
             pixels = await self._queue.get()
             if pixels is None:
                 break
