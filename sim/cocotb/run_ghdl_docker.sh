@@ -26,11 +26,36 @@ else
   exit 1
 fi
 
+DOCKER_FLAGS=(
+  -u "$(id -u):$(id -g)"
+  -e DISPLAY
+  -e HOME=/work/sim/cocotb/sim_build/tmp
+  -e MPLCONFIGDIR=/work/sim/cocotb/sim_build/tmp/matplotlib
+  -e MPLBACKEND=TkAgg
+  -e COCOTB_DEBUG
+  -e SIM=ghdl
+)
+
+# Prefer the WSLg X11 socket when available (snap docker cannot mount /tmp/.X11-unix).
+X11_SOCKET_DIR="/tmp/.X11-unix"
+if [ -d /mnt/wslg/.X11-unix ]; then
+  X11_SOCKET_DIR="/mnt/wslg/.X11-unix"
+fi
+DOCKER_FLAGS+=(
+  -v "${X11_SOCKET_DIR}:/tmp/.X11-unix"
+)
+
+# WSLg support: pass through display/audio env and sockets when available.
+if [ -d /mnt/wslg ]; then
+  DOCKER_FLAGS+=(
+    -e WAYLAND_DISPLAY
+    -e XDG_RUNTIME_DIR
+    -e PULSE_SERVER
+    -v /mnt/wslg:/mnt/wslg
+  )
+fi
+
 ${COMPOSE_CMD} -f "${ROOT_DIR}/sim/cocotb/docker/docker-compose.yml" run --rm --service-ports \
-  -u "$(id -u):$(id -g)" \
-  -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -e HOME=/work/sim/cocotb/sim_build/tmp \
-  -e MPLBACKEND=TkAgg \
-  -e COCOTB_DEBUG -e SIM=ghdl \
+  "${DOCKER_FLAGS[@]}" \
   ghdl-cocotb \
   python /work/sim/cocotb/runner.py

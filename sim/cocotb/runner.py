@@ -6,6 +6,7 @@ import math
 import os
 import signal
 import shlex
+import warnings
 from pathlib import Path
 from typing import Dict, List
 
@@ -144,6 +145,27 @@ def run() -> None:
                 from matplotlib.patches import Rectangle
             except Exception as exc:
                 raise RuntimeError("matplotlib is required for plotting detections") from exc
+
+            backend = (plt.get_backend() or "").lower()
+            noninteractive_backends = {
+                "agg",
+                "cairo",
+                "pdf",
+                "pgf",
+                "ps",
+                "svg",
+                "template",
+            }
+            if backend in noninteractive_backends:
+                warnings.warn(
+                    (
+                        f"Matplotlib backend '{plt.get_backend()}' is non-interactive; "
+                        "disabling plots. Set DISABLE_PLOT=1 to silence this warning "
+                        "or configure an interactive backend/X11."
+                    ),
+                    UserWarning,
+                )
+                show_plots = False
 
         with open(detections[0], "r", encoding="utf-8") as handle:
             items = json.load(handle)
