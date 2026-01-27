@@ -384,5 +384,21 @@ def run_post_analysis(build_dir: Path) -> None:
                 ax.axvline(0.0, color="black", linestyle=":")
                 ax.axvline(x_size, color="black", linestyle=":")
 
+    if show_plots and shapes and x_size is not None and height is not None:
+        width = int(x_size)
+        if width > 0 and height > 0:
+            full_db = ShapeDb()
+            for shape in shapes:
+                full_db.add(shape)
+            full_bitmap = np.zeros((height, width), dtype=np.uint8)
+            for y in range(height):
+                for x in range(width):
+                    if full_db.pixel_at(x, y).in_label:
+                        full_bitmap[y, x] = 255
+            fig, ax = plt.subplots()
+            ax.set_title("Full Image")
+            ax.imshow(full_bitmap, cmap="gray", origin="upper")
+            ax.set_aspect("equal", adjustable="box")
+
     if show_plots:
         _finalize_plots(plt)
