@@ -68,15 +68,9 @@ def run() -> None:
     hdl_toplevel = TOPLEVEL
     test_module = TEST_MODULE
 
-    build_args: List[str] = []
-    test_args: List[str] = []
     std_arg = f"--std={VHDL_STD}"
-    if sim == "ghdl":
-        build_args = [std_arg]
-        test_args = [std_arg]
-    elif sim == "nvc":
-        build_args = [std_arg, "--ieee-warnings=off"]
-        test_args = []
+    build_args: List[str] = [std_arg, "--ieee-warnings=off"]
+    test_args: List[str] = []
 
     sources = _default_sources(root, hdl_toplevel)
     build_dir = Path(root / "sim" / "cocotb" / "sim_build")

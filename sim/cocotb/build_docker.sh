@@ -12,4 +12,4 @@ else
   exit 1
 fi
 
-${COMPOSE_CMD} -f "${ROOT_DIR}/sim/cocotb/docker/docker-compose.yml" build
+${COMPOSE_CMD} -f "${ROOT_DIR}/sim/cocotb/docker/docker-compose.yml" build nvc-cocotb

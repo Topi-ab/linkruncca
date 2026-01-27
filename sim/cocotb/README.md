@@ -1,14 +1,8 @@
 # Cocotb Simulation
 
-This folder contains a cocotb runner, a minimal testbench, and Docker tooling for running the design with GHDL or NVC.
+This folder contains a cocotb runner, a minimal testbench, and Docker tooling for running the design with NVC.
 
 ## Quick Run
-
-GHDL (default, Docker if GHDL is not available locally):
-
-```bash
-./run_ghdl_docker.sh
-```
 
 NVC (Docker):
 
@@ -38,33 +32,15 @@ Shapes and detections are written to `sim/cocotb/sim_build/results/results.json`
 
 ## Build Images
 
-Build both containers:
+Build NVC container:
 
 ```bash
 ./build_docker.sh
 ```
 
-Build GHDL container:
-
-```bash
-docker-compose -f docker/docker-compose.yml build ghdl-cocotb
-```
-
-Build NVC container:
-
-```bash
-docker-compose -f docker/docker-compose.yml build nvc-cocotb
-```
-
 ## Debug (VS Code)
 
 1) Run with debug enabled:
-
-```bash
-COCOTB_DEBUG=1 bash run_ghdl_docker.sh
-```
-
-NVC debug:
 
 ```bash
 COCOTB_DEBUG=1 bash run_nvc_docker.sh
@@ -73,7 +49,7 @@ COCOTB_DEBUG=1 bash run_nvc_docker.sh
 2) Attach VS Code using the "Attach cocotb (debugpy)" config in `.vscode/launch.json`.
 
 Notes:
-- The Docker flow maps port 5678; `run_ghdl_docker.sh` uses `--service-ports` so the port is visible.
+- The Docker flow maps port 5678; `run_nvc_docker.sh` uses `--service-ports` so the port is visible.
 - If you change Dockerfiles or dependencies, rebuild the image before running.
 
 ## Environment Variables
@@ -113,7 +89,7 @@ DISABLE_PLOT=1 ./run_nvc_docker.sh
 
 ## Notes
 
-- GHDL VPI does not expose VHDL record ports; use NVC or add a wrapper with flat ports for cocotb access.
+- NVC is used for cocotb access to VHDL records.
 
 ## Example Results
 

@@ -1,15 +1,4 @@
 services:
-  ghdl-cocotb:
-    build:
-      context: ../../..
-      dockerfile: sim/cocotb/docker/Dockerfile.ghdl
-    image: linkruncca/ghdl-cocotb:local
-    working_dir: /work
-    volumes:
-      - ../../..:/work
-    ports:
-      - "5678:5678"
-    tty: true
   nvc-cocotb:
     build:
       context: ../../..
