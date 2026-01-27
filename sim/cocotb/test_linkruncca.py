@@ -1,6 +1,4 @@
-import json
 import os
-from dataclasses import asdict
 
 import cocotb
 
@@ -12,6 +10,7 @@ from shapes.Ellipse import Ellipse
 from shapes.PixelShape import PixelShape
 from shapes.Line import Line
 from shapes.ShapeDb import ShapeDb
+from shared.json_files import write_detections, write_shapes
 
 if os.getenv("COCOTB_DEBUG"):
     import debugpy
@@ -67,18 +66,5 @@ async def smoke_linkruncca(dut):
     await feeder.idle(5)
 
     results_dir = os.getenv("COCOTB_RESULTS_DIR", "sim/cocotb/results")
-    os.makedirs(results_dir, exist_ok=True)
-
-    results_path = os.path.join(results_dir, "detections.json")
-    with open(results_path, "w", encoding="utf-8") as handle:
-        json.dump([asdict(r) for r in collector.results()], handle, indent=2)
-
-    shapes_path = os.path.join(results_dir, "shapes.json")
-    shapes_payload = {
-        "meta": {"x_size": params.x_size, "height": height},
-        "shapes": [],
-    }
-    for shape in shapes:
-        shapes_payload["shapes"].append({"type": shape.kind, "params": shape.__dict__})
-    with open(shapes_path, "w", encoding="utf-8") as handle:
-        json.dump(shapes_payload, handle, indent=2)
+    write_detections(results_dir, collector.results())
+    write_shapes(results_dir, shapes, x_size=params.x_size, height=height)
