@@ -37,21 +37,42 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
-use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_linkruncca is
+    generic(
+        cfg: linkruncca_config_t := (
+            x_size => 200,
+            y_bits => 10
+        )
+    );
     port(
         clk: in std_logic;
         rst: in std_logic;
         datavalid: in std_logic;
-        pix_in: in linkruncca_collect_t;
+        pix_in: in linkruncca_collect_t(
+            x(max2bits(cfg.x_size - 1)-1 downto 0),
+            y(cfg.y_bits-1 downto 0)
+        );
         res_valid_out: out std_logic;
-        res_data_out: out linkruncca_feature_t
+        res_data_out: out linkruncca_feature_t(
+            x_left(max2bits(cfg.x_size - 1)-1 downto 0),
+            x_right(max2bits(cfg.x_size - 1)-1 downto 0),
+            y_top(cfg.y_bits-1 downto 0),
+            y_bottom(cfg.y_bits-1 downto 0)
+        )
     );
 end;
 
 architecture rtl of vhdl_linkruncca is
+    package linkruncca_pkg is new work.vhdl_linkruncca_pkg
+        generic map(
+            cfg => cfg
+        );
+    use linkruncca_pkg.all;
+
     -- constant latency: integer := 3;
     constant used_x_size: integer := x_size;
     constant used_y_bits: integer := y_bits;
@@ -71,8 +92,8 @@ architecture rtl of vhdl_linkruncca is
     signal t_rdata: unsigned(mem_add_bits - 1 downto 0);
     signal d_raddr: unsigned(mem_add_bits - 1 downto 0);
     signal d_waddr: unsigned(mem_add_bits - 1 downto 0);
-    signal d_rdata: linkruncca_feature_t;
-    signal d_wdata: linkruncca_feature_t;
+    signal d_rdata: linkruncca_feature_t_c;
+    signal d_wdata: linkruncca_feature_t_c;
     signal n_we: std_logic;
     signal h_we: std_logic;
     signal t_we: std_logic;
@@ -99,16 +120,16 @@ architecture rtl of vhdl_linkruncca is
     signal hp: unsigned(mem_add_bits - 1 downto 0);
     signal tp: unsigned(mem_add_bits - 1 downto 0);
     signal np: unsigned(mem_add_bits - 1 downto 0);
-    signal dd: linkruncca_feature_t;
-    signal dp: linkruncca_feature_t;
+    signal dd: linkruncca_feature_t_c;
+    signal dp: linkruncca_feature_t_c;
     signal left: std_logic;
     signal hr1: std_logic;
     signal hf_pix: std_logic;
     signal hf_orig_pix: std_logic;
 
-    signal pix_d1: linkruncca_collect_t;
-    signal pix_d2: linkruncca_collect_t;
-    signal pix_d3: linkruncca_collect_t;
+    signal pix_d1: linkruncca_collect_t_c;
+    signal pix_d2: linkruncca_collect_t_c;
+    signal pix_d3: linkruncca_collect_t_c;
 begin
     process(clk)
     begin
@@ -166,6 +187,7 @@ begin
 
     Data_Table: entity work.vhdl_table_ram_data
         generic map(
+            cfg => cfg,
             address_width => mem_add_bits
         )
         port map(
@@ -225,6 +247,7 @@ begin
     -- Table Reader
     TR: entity work.vhdl_table_reader
         generic map(
+            cfg => cfg,
             address_bit => mem_add_bits
         )
         port map(
@@ -263,6 +286,7 @@ begin
     -- Equivalence Resolver
     ES: entity work.vhdl_equivalence_resolver
         generic map(
+            cfg => cfg,
             address_bit => mem_add_bits
         )
         port map(
@@ -304,6 +328,9 @@ begin
 
       -- Feature Accumulator
       FA: entity work.vhdl_feature_accumulator
+        generic map(
+            cfg => cfg
+        )
         port map(
             clk => clk, 
             rst => rst, 

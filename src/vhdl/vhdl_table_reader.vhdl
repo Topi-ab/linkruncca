@@ -36,12 +36,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 
 entity vhdl_table_reader is
     generic(
+        cfg: linkruncca_config_t;
         address_bit: positive := 9
     );
     port(
@@ -79,8 +81,14 @@ entity vhdl_table_reader is
 end;
 
 architecture rtl of vhdl_table_reader is
+    package linkruncca_pkg is new work.vhdl_linkruncca_pkg
+        generic map(
+            cfg => cfg
+        );
+    use linkruncca_pkg.all;
+
     signal rtp: unsigned(address_bit-1 downto 0);
-    signal rdp: linkruncca_feature_t;
+    signal rdp: linkruncca_feature_t_c;
 
     signal pc: unsigned(address_bit-1 downto 0);
 

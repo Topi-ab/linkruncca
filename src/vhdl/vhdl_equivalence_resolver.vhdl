@@ -36,11 +36,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_equivalence_resolver is
     generic(
+        cfg: linkruncca_config_t;
         address_bit: positive := 9
     );
     port(
@@ -82,6 +84,12 @@ entity vhdl_equivalence_resolver is
 end;
 
 architecture rtl of vhdl_equivalence_resolver is
+    package linkruncca_pkg is new work.vhdl_linkruncca_pkg
+        generic map(
+            cfg => cfg
+        );
+    use linkruncca_pkg.all;
+
     signal cc: unsigned(address_bit-1 downto 0);
     signal h: unsigned(address_bit-1 downto 0);
     signal f: std_logic;
@@ -90,6 +98,7 @@ architecture rtl of vhdl_equivalence_resolver is
     signal ep: std_logic;
 begin
     process(all)
+        variable f_fp: std_logic_vector(1 downto 0);
     begin
         dmg <= o when not(f = '1' and hp = h) else '0';
         dac <= neighbour_in.d;
@@ -123,6 +132,7 @@ begin
     end process;
 
     process(all)
+        variable f_fp: std_logic_vector(1 downto 0);
     begin
         h_we <= '0';
         h_waddr <= (others => '0');
@@ -182,7 +192,8 @@ begin
                     null;
             end case;
         elsif o = '1' then
-            case std_logic_vector'(f & fp) is
+            f_fp := f & fp;
+            case f_fp is
                 when "00" =>
                     h_we <= '1';
                     h_waddr <= np;

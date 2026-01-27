@@ -2,43 +2,44 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
+use work.vhdl_linkruncca_util_pkg.all;
+
 package vhdl_linkruncca_pkg is
-    constant x_bits: integer := 8;
-    constant y_bits: integer := 8;
+    generic(
+        cfg: linkruncca_config_t
+    );
+
+    constant x_size: integer := cfg.x_size;
+    constant y_bits: integer := cfg.y_bits;
+    constant x_bits: integer := max2bits(x_size - 1);
 
     constant box_bits: integer := 2*x_bits + 2*y_bits;
+    constant mem_add_bits: integer := x_bits - 1;
 
-    -- This structure holds data from single pixel, which needs to be collected to feature.
-    type linkruncca_collect_t is record
-        in_label: std_logic; -- '1' is object to be detected. '0' is background.
-        has_red: std_logic;
-        has_green: std_logic;
-        has_blue: std_logic;
-        x: unsigned(x_bits-1 downto 0);
-        y: unsigned(y_bits-1 downto 0);
-    end record;
+    subtype linkruncca_collect_t_c is linkruncca_collect_t(
+        x(x_bits-1 downto 0),
+        y(y_bits-1 downto 0)
+    );
+    subtype linkruncca_feature_t_c is linkruncca_feature_t(
+        x_left(x_bits-1 downto 0),
+        x_right(x_bits-1 downto 0),
+        y_top(y_bits-1 downto 0),
+        y_bottom(y_bits-1 downto 0)
+    );
 
-    -- This structure holds features for single label.
-    type linkruncca_feature_t is record
-        has_red: std_logic;
-        has_green: std_logic;
-        has_blue: std_logic;
-        x_left: unsigned(x_bits-1 downto 0);
-        x_right: unsigned(x_bits-1 downto 0);
-        y_top: unsigned(y_bits-1 downto 0);
-        y_bottom: unsigned(y_bits-1 downto 0);
-    end record;
-
-    function linkruncca_feature_empty_val return linkruncca_feature_t;
-    function linkruncca_feature_collect(a: linkruncca_collect_t) return linkruncca_feature_t;
-    function linkruncca_feature_merge(a: linkruncca_feature_t; b: linkruncca_feature_t) return linkruncca_feature_t;
+    function linkruncca_feature_empty_val return linkruncca_feature_t_c;
+    function linkruncca_feature_collect(a: linkruncca_collect_t_c) return linkruncca_feature_t_c;
+    function linkruncca_feature_collect(a: linkruncca_collect_t_c; neighbour: pixel_neighbour_t) return linkruncca_feature_t_c;
+    function linkruncca_feature_merge(a: linkruncca_feature_t_c; b: linkruncca_feature_t_c) return linkruncca_feature_t_c;
     function umin(a: unsigned; b: unsigned) return unsigned;
     function umax(a: unsigned; b: unsigned) return unsigned;
 end;
 
 package body vhdl_linkruncca_pkg is
-    function linkruncca_feature_empty_val return linkruncca_feature_t is
-        variable r: linkruncca_feature_t;
+    function linkruncca_feature_empty_val return linkruncca_feature_t_c is
+        variable r: linkruncca_feature_t_c;
     begin
         r.x_left := (others => '1');
         r.x_right := (others => '0');
@@ -51,8 +52,8 @@ package body vhdl_linkruncca_pkg is
         return r;
     end;
 
-    function linkruncca_feature_collect(a: linkruncca_collect_t) return linkruncca_feature_t is
-        variable r: linkruncca_feature_t;
+    function linkruncca_feature_collect(a: linkruncca_collect_t_c) return linkruncca_feature_t_c is
+        variable r: linkruncca_feature_t_c;
     begin
         r.x_left := a.x;
         r.x_right := a.x;
@@ -65,11 +66,19 @@ package body vhdl_linkruncca_pkg is
         return r;
     end;
 
+    function linkruncca_feature_collect(
+            a: linkruncca_collect_t_c;
+            neighbour: pixel_neighbour_t
+        ) return linkruncca_feature_t_c is
+    begin
+        return linkruncca_feature_collect(a);
+    end;
+
     function linkruncca_feature_merge(
-            a: linkruncca_feature_t;
-            b: linkruncca_feature_t
-        ) return linkruncca_feature_t is
-        variable r: linkruncca_feature_t;
+            a: linkruncca_feature_t_c;
+            b: linkruncca_feature_t_c
+        ) return linkruncca_feature_t_c is
+        variable r: linkruncca_feature_t_c;
     begin
         r := a;
 

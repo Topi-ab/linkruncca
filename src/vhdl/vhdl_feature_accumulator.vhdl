@@ -36,10 +36,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 entity vhdl_feature_accumulator is
+    generic(
+        cfg: linkruncca_config_t
+    );
     port(
         clk: in std_logic;
         rst: in std_logic;
@@ -55,13 +59,22 @@ entity vhdl_feature_accumulator is
 end;
 
 architecture rtl of vhdl_feature_accumulator is
+    package linkruncca_pkg is new work.vhdl_linkruncca_pkg
+        generic map(
+            cfg => cfg
+        );
+    use linkruncca_pkg.all;
+
+    alias pix_in_c: linkruncca_collect_t_c is pix_in;
+    alias dp_c: linkruncca_feature_t_c is dp;
+
     signal dac_d1: std_logic;
     signal dmg_d1: std_logic;
     signal clr_d1: std_logic;
 
-    signal d_pix: linkruncca_feature_t;
-    signal d_pix_d1: linkruncca_feature_t;
-    signal d_acc: linkruncca_feature_t;
+    signal d_pix: linkruncca_feature_t_c;
+    signal d_pix_d1: linkruncca_feature_t_c;
+    signal d_acc: linkruncca_feature_t_c;
 
     -- signal feature_feed: linkruncca_feature_t;
 begin
@@ -73,24 +86,26 @@ begin
         );*/
 
     input_async_pr: process(all)
-        variable pix_data: linkruncca_collect_t;
-        variable label_data_pix: linkruncca_feature_t;
+        variable pix_data: linkruncca_collect_t_c;
+        variable label_data_pix: linkruncca_feature_t_c;
+        variable dmg_dac: std_logic_vector(1 downto 0);
     begin
-        pix_data := pix_in;
+        pix_data := pix_in_c;
         -- pix_data.neighbour := neighbour_in;
         label_data_pix := linkruncca_feature_collect(pix_data, neighbour_in);
         -- label_data_pix := feature_feed;
 
+        dmg_dac := dmg & dac;
         d_pix <= linkruncca_feature_empty_val;
-        case std_logic_vector'(dmg & dac) is
+        case dmg_dac is
             when "00" =>
                 null;
             when "01" =>
                 d_pix <= label_data_pix;
             when "10" =>
-                d_pix <= dp;
+                d_pix <= dp_c;
             when "11" =>
-                d_pix <= linkruncca_feature_merge(dp, label_data_pix);
+                d_pix <= linkruncca_feature_merge(dp_c, label_data_pix);
             when others =>
                 null;
         end case;
@@ -116,9 +131,11 @@ begin
     end process;
 
     pre_acc_async_pr: process(all)
+        variable dmg_dac: std_logic_vector(1 downto 0);
     begin
         d <= d_acc;
-        case std_logic_vector'(dmg_d1 & dac_d1) is
+        dmg_dac := dmg_d1 & dac_d1;
+        case dmg_dac is
             when "00" =>
                 null;
             when "01" =>

@@ -3,14 +3,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+use work.vhdl_linkruncca_cfg_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
 
 package vhdl_linkruncca_pkg is
-    -- USER PARAMETERS =>
+    generic(
+        cfg: linkruncca_config_t
+    );
 
-    constant x_size: integer := 200;
-    constant y_bits: integer := 10;
-    
+    -- USER PARAMETERS =>
+    constant x_size: integer := cfg.x_size;
+    constant y_bits: integer := cfg.y_bits;
     -- <= USER PARAMETERS.
 
     constant x_bits: integer := max2bits(x_size-1);

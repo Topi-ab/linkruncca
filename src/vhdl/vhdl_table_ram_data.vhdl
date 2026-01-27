@@ -36,10 +36,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.vhdl_linkruncca_pkg.all;
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
 
 entity vhdl_table_ram_data is
     generic(
+        cfg: linkruncca_config_t;
         address_width: positive := 10
     );
     port(
@@ -53,7 +55,13 @@ entity vhdl_table_ram_data is
 end;
 
 architecture rtl of vhdl_table_ram_data is
-    type ram_t is array(0 to 2**address_width-1) of linkruncca_feature_t;
+    package linkruncca_pkg is new work.vhdl_linkruncca_pkg
+        generic map(
+            cfg => cfg
+        );
+    use linkruncca_pkg.all;
+
+    type ram_t is array(0 to 2**address_width-1) of linkruncca_feature_t_c;
     signal ram: ram_t;
     signal read_addr_reg: unsigned(address_width-1 downto 0);
 begin

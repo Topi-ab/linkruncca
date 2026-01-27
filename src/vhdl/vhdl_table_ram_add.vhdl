@@ -36,8 +36,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.vhdl_linkruncca_pkg.all;
-
 entity vhdl_table_ram_add is
     generic(
         data_width: positive := 8;

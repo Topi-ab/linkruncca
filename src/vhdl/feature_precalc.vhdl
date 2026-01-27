@@ -2,10 +2,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use work.vhdl_linkruncca_cfg_pkg.all;
+use work.vhdl_linkruncca_types_pkg.all;
 use work.vhdl_linkruncca_util_pkg.all;
-use work.vhdl_linkruncca_pkg.all;
 
 entity feature_precalc is
+    generic(
+        cfg: linkruncca_config_t
+    );
     port(
         clk_in: in std_logic;
 
@@ -15,6 +19,12 @@ entity feature_precalc is
 end;
 
 architecture rtl of feature_precalc is
+    package linkruncca_pkg is new work.vhdl_linkruncca_pkg
+        generic map(
+            cfg => cfg
+        );
+    use linkruncca_pkg.all;
+
 begin
     process(all)
     begin

@@ -26,7 +26,7 @@ _run_post_analysis = _load_post_analysis()
 SIMULATOR = "nvc"
 TOPLEVEL = "vhdl_linkruncca"
 TEST_MODULE = "test_linkruncca"
-VHDL_PKG = "vhdl_linkruncca_pkg_ellipses_linescan.vhdl"
+VHDL_PKG = "vhdl_linkruncca_pkg.vhdl"
 VHDL_STD = "08"
 INCLUDE_TB = False
 
@@ -36,8 +36,10 @@ def _default_sources(root: Path, hdl_toplevel: str) -> List[Path]:
     sim_vhdl = root / "sim" / "vhdl"
 
     sources = [
+        src_vhdl / "vhdl_linkruncca_cfg_pkg.vhdl",
+        src_vhdl / "vhdl_linkruncca_types_pkg.vhdl",
         src_vhdl / "vhdl_linkruncca_util_pkg.vhdl",
-        sim_vhdl / VHDL_PKG,
+        src_vhdl / VHDL_PKG,
         sim_vhdl / "ellipse_generator_pkg.vhdl",
         src_vhdl / "vhdl_table_ram_add.vhdl",
         src_vhdl / "vhdl_table_ram_data.vhdl",
