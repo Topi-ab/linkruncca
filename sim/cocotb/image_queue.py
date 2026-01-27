@@ -122,7 +122,7 @@ class ImageQueueFeeder:
         if hasattr(image, "iter_pixels"):
             return list(image.iter_pixels())
 
-        if isinstance(image, Sequence) and image:
+        if isinstance(image, Sequence) and len(image) > 0:
             first = image[0]
             if isinstance(first, (tuple, list)) and len(first) == 3:
                 return [(int(x), int(y), int(v)) for x, y, v in image]  # type: ignore[misc]

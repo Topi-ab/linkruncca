@@ -29,11 +29,8 @@ fi
 DOCKER_FLAGS=(
   -u "$(id -u):$(id -g)"
   -e DISPLAY
-  -e HOME=/work/sim/cocotb/sim_build/tmp
-  -e MPLCONFIGDIR=/work/sim/cocotb/sim_build/tmp/matplotlib
   -e MPLBACKEND=TkAgg
   -e COCOTB_DEBUG
-  -e SIM=ghdl
 )
 
 # Prefer the WSLg X11 socket when available (snap docker cannot mount /tmp/.X11-unix).

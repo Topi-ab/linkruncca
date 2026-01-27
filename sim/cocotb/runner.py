@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import shlex
 from pathlib import Path
 from typing import Dict, List
 
@@ -24,32 +23,21 @@ def _load_post_analysis():
 _run_post_analysis = _load_post_analysis()
 
 
-def _split_env(name: str) -> List[str]:
-    value = os.getenv(name)
-    if not value:
-        return []
-    return shlex.split(value)
-
-
-def _env_int(name: str) -> int | None:
-    value = os.getenv(name)
-    if value is None or value == "":
-        return None
-    return int(value, 0)
+SIMULATOR = "nvc"
+TOPLEVEL = "vhdl_linkruncca"
+TEST_MODULE = "test_linkruncca"
+VHDL_PKG = "vhdl_linkruncca_pkg_ellipses_linescan.vhdl"
+VHDL_STD = "08"
+INCLUDE_TB = False
 
 
 def _default_sources(root: Path, hdl_toplevel: str) -> List[Path]:
     src_vhdl = root / "src" / "vhdl"
     sim_vhdl = root / "sim" / "vhdl"
 
-    pkg_name = os.getenv(
-        "LINKRUNCCA_PKG",
-        "vhdl_linkruncca_pkg_ellipses_linescan.vhdl",
-    )
-
     sources = [
         src_vhdl / "vhdl_linkruncca_util_pkg.vhdl",
-        sim_vhdl / pkg_name,
+        sim_vhdl / VHDL_PKG,
         sim_vhdl / "ellipse_generator_pkg.vhdl",
         src_vhdl / "vhdl_table_ram_add.vhdl",
         src_vhdl / "vhdl_table_ram_data.vhdl",
@@ -63,8 +51,7 @@ def _default_sources(root: Path, hdl_toplevel: str) -> List[Path]:
         src_vhdl / "vhdl_linkruncca.vhdl",
     ]
 
-    include_tb = os.getenv("INCLUDE_TB", "").lower() in {"1", "true", "yes"}
-    if include_tb or hdl_toplevel == "tb_linkruncca":
+    if INCLUDE_TB or hdl_toplevel == "tb_linkruncca":
         sources.append(sim_vhdl / "tb_linkruncca.vhdl")
 
     return sources
@@ -72,40 +59,27 @@ def _default_sources(root: Path, hdl_toplevel: str) -> List[Path]:
 
 def _default_parameters() -> Dict[str, int]:
     params: Dict[str, int] = {}
-    imwidth = _env_int("LINKRUNCCA_IMWIDTH")
-    imheight = _env_int("LINKRUNCCA_IMHEIGHT")
-    if imwidth is not None:
-        params["imwidth"] = imwidth
-    if imheight is not None:
-        params["imheight"] = imheight
     return params
 
 
 def run() -> None:
     root = Path(__file__).resolve().parents[2]
-    sim = os.getenv("SIM", "ghdl").lower()
-    hdl_toplevel = os.getenv("TOPLEVEL", "vhdl_linkruncca")
-    test_module = os.getenv("COCOTB_TEST_MODULES") or os.getenv(
-        "TEST_MODULE", "test_linkruncca"
-    )
+    sim = SIMULATOR
+    hdl_toplevel = TOPLEVEL
+    test_module = TEST_MODULE
 
     build_args: List[str] = []
     test_args: List[str] = []
+    std_arg = f"--std={VHDL_STD}"
     if sim == "ghdl":
-        ghdl_std = os.getenv("GHDL_STD", "08")
-        std_arg = f"--std={ghdl_std}"
-        build_args = [std_arg, *_split_env("GHDL_BUILD_ARGS")]
-        test_args = [std_arg, *_split_env("GHDL_RUN_ARGS")]
+        build_args = [std_arg]
+        test_args = [std_arg]
     elif sim == "nvc":
-        nvc_std = os.getenv("NVC_STD", "08")
-        std_arg = f"--std={nvc_std}"
-        build_args = [std_arg, *_split_env("NVC_BUILD_ARGS")]
-        test_args = [*_split_env("NVC_RUN_ARGS")]
-        if not any(arg.startswith("--ieee-warnings") for arg in build_args):
-            build_args.append("--ieee-warnings=off")
+        build_args = [std_arg, "--ieee-warnings=off"]
+        test_args = []
 
     sources = _default_sources(root, hdl_toplevel)
-    build_dir = Path(os.getenv("SIM_BUILD_DIR", root / "sim" / "cocotb" / "sim_build"))
+    build_dir = Path(root / "sim" / "cocotb" / "sim_build")
 
     runner = get_runner(sim)
     runner.build(

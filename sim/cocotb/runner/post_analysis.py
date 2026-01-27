@@ -7,13 +7,7 @@ import warnings
 from pathlib import Path
 
 from shapes.ShapeDb import ShapeDb
-from shared.json_files import (
-    DETECTIONS_FILENAME,
-    SHAPES_FILENAME,
-    find_first_json,
-    load_detections,
-    load_shapes,
-)
+from shared.json_files import RESULTS_FILENAME, find_results_json, load_results
 
 _NONINTERACTIVE_BACKENDS = {
     "agg",
@@ -295,8 +289,8 @@ def _finalize_plots(plt):
 
 
 def run_post_analysis(build_dir: Path) -> None:
-    detections_path = find_first_json(build_dir, DETECTIONS_FILENAME)
-    if detections_path is None:
+    results_path = find_results_json(build_dir)
+    if results_path is None:
         return
 
     show_plots = not _env_bool("DISABLE_PLOT", False)
@@ -311,31 +305,11 @@ def run_post_analysis(build_dir: Path) -> None:
 
     show_plots, plt, Rectangle = _load_plotting(show_plots)
 
-    items = load_detections(detections_path)
-
-    shapes_path = find_first_json(build_dir, SHAPES_FILENAME)
-    shapes = []
-    shape_entries = []
-    x_size = None
-    height = None
-    if shapes_path is not None:
-        shapes, shape_entries, x_size, height = load_shapes(shapes_path)
-
-    if x_size is None:
-        x_size_env = os.getenv("LINKRUNCCA_X_SIZE")
-        x_size = float(x_size_env) if x_size_env else None
-    if height is None:
-        height_env = os.getenv("LINKRUNCCA_HEIGHT")
-        height = int(height_env) if height_env else None
-
-    shape_db = ShapeDb()
-    for shape in shapes:
-        shape_db.add(shape)
+    items, shapes, shape_entries, x_size, height = load_results(results_path)
 
     if shapes and (x_size is None or height is None):
         raise RuntimeError(
-            "shapes.json meta x_size and height (or LINKRUNCCA_HEIGHT) "
-            "are required for ref pixel map generation"
+            "results.json meta x_size and height are required for ref pixel map generation"
         )
 
     for idx, item in enumerate(items):

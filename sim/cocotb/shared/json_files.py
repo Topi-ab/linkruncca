@@ -11,58 +11,48 @@ from shapes.Ellipse import Ellipse
 from shapes.Line import Line
 from shapes.PixelShape import PixelShape
 
-DETECTIONS_FILENAME = "detections.json"
-SHAPES_FILENAME = "shapes.json"
+RESULTS_FILENAME = "results.json"
 
 
-def find_first_json(root: os.PathLike[str] | str, filename: str) -> Path | None:
-    matches = list(Path(root).rglob(filename))
-    return matches[0] if matches else None
+def find_results_json(root: os.PathLike[str] | str) -> Path | None:
+    base = Path(root)
+    path = base / "results" / RESULTS_FILENAME
+    return path if path.exists() else None
 
 
-def write_detections(results_dir: os.PathLike[str] | str, results: Iterable[Any]) -> Path:
-    results_path = Path(results_dir) / DETECTIONS_FILENAME
-    results_path.parent.mkdir(parents=True, exist_ok=True)
-    with results_path.open("w", encoding="utf-8") as handle:
-        json.dump([asdict(r) for r in results], handle, indent=2)
-    return results_path
-
-
-def write_shapes(
+def write_results(
     results_dir: os.PathLike[str] | str,
+    results: Iterable[Any],
     shapes: Iterable[Any],
     *,
     x_size: int,
     height: int,
 ) -> Path:
-    shapes_path = Path(results_dir) / SHAPES_FILENAME
-    shapes_path.parent.mkdir(parents=True, exist_ok=True)
+    results_path = Path(results_dir) / RESULTS_FILENAME
+    results_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "meta": {"x_size": x_size, "height": height},
         "shapes": [
             {"type": shape.kind, "params": shape.__dict__}
             for shape in shapes
         ],
+        "detections": [asdict(r) for r in results],
     }
-    with shapes_path.open("w", encoding="utf-8") as handle:
+    with results_path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
-    return shapes_path
+    return results_path
 
 
-def load_detections(path: os.PathLike[str] | str) -> List[Dict[str, Any]]:
-    with Path(path).open("r", encoding="utf-8") as handle:
-        return json.load(handle)
-
-
-def load_shapes(
+def load_results(
     path: os.PathLike[str] | str,
-) -> Tuple[List[Any], List[Dict[str, Any]], float | None, int | None]:
+) -> Tuple[List[Dict[str, Any]], List[Any], List[Dict[str, Any]], float | None, int | None]:
     with Path(path).open("r", encoding="utf-8") as handle:
         payload = json.load(handle)
-    shape_items = payload.get("shapes", [])
     meta = payload.get("meta", {})
     x_size = float(meta["x_size"]) if "x_size" in meta else None
     height = int(meta["height"]) if "height" in meta else None
+    detections = payload.get("detections", [])
+    shape_items = payload.get("shapes", [])
 
     shapes = []
     shape_entries = []
@@ -80,4 +70,4 @@ def load_shapes(
         elif shape_type == "pixel":
             shapes.append(PixelShape(**params))
 
-    return shapes, shape_entries, x_size, height
+    return detections, shapes, shape_entries, x_size, height

@@ -29,13 +29,13 @@ fi
 DOCKER_FLAGS=(
   -u "$(id -u):$(id -g)"
   -e DISPLAY
-  -e HOME=/work/sim/cocotb/sim_build/tmp
-  -e MPLCONFIGDIR=/work/sim/cocotb/sim_build/tmp/matplotlib
   -e MPLBACKEND=TkAgg
   -e COCOTB_DEBUG
-  -e SIM=nvc
-  -e DISABLE_PLOT
 )
+
+if [ -n "${DISABLE_PLOT:-}" ]; then
+  DOCKER_FLAGS+=(-e DISABLE_PLOT)
+fi
 
 # Prefer the WSLg X11 socket when available (snap docker cannot mount /tmp/.X11-unix).
 X11_SOCKET_DIR="/tmp/.X11-unix"

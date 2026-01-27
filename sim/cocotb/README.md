@@ -34,7 +34,7 @@ shapes = [
 ]
 ```
 
-Shapes are written to `sim/cocotb/sim_build/results/shapes.json`, and detections are written to `sim/cocotb/sim_build/results/detections.json`.
+Shapes and detections are written to `sim/cocotb/sim_build/results/results.json`.
 
 ## Build Images
 
@@ -79,10 +79,7 @@ Notes:
 ## Environment Variables
 
 - `COCOTB_DEBUG`: any non-empty value to wait for debugger
-- `GHDL_STD`, `GHDL_BUILD_ARGS`, `GHDL_RUN_ARGS`
-- `NVC_STD`, `NVC_BUILD_ARGS`, `NVC_RUN_ARGS`
-- `TOPLEVEL`, `COCOTB_TEST_MODULES`/`TEST_MODULE`
-- `LINKRUNCCA_PKG`, `LINKRUNCCA_IMWIDTH`, `LINKRUNCCA_IMHEIGHT`
+- `DISABLE_PLOT`: any non-empty value to disable plots after simulation
 
 ## GUI Plots
 

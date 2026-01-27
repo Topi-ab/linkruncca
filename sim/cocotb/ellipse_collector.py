@@ -1,5 +1,4 @@
 import math
-import os
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -47,7 +46,7 @@ class ResolvedEllipse:
     n_seg1_sum: float = 0.0
 
 
-class EllipseResultCollector:
+class ResultCollector:
     def __init__(
         self,
         dut,

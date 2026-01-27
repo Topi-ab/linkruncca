@@ -3,14 +3,14 @@ import os
 import cocotb
 
 from image_queue import ImageQueueFeeder
-from ellipse_collector import EllipseResultCollector
+from ellipse_collector import ResultCollector
 from dut_params import DutParams
 from shapes.Circle import Circle
 from shapes.Ellipse import Ellipse
 from shapes.PixelShape import PixelShape
 from shapes.Line import Line
 from shapes.ShapeDb import ShapeDb
-from shared.json_files import write_detections, write_shapes
+from shared.json_files import write_results
 
 if os.getenv("COCOTB_DEBUG"):
     import debugpy
@@ -50,7 +50,7 @@ async def smoke_linkruncca(dut):
     for shape in shapes:
         db.add(shape)
 
-    collector = EllipseResultCollector(dut, dut.clk)
+    collector = ResultCollector(dut, dut.clk)
     feeder.start()
     collector.start()
     for y in range(height):
@@ -65,6 +65,5 @@ async def smoke_linkruncca(dut):
     dut.datavalid.value = 0
     await feeder.idle(5)
 
-    results_dir = os.getenv("COCOTB_RESULTS_DIR", "sim/cocotb/results")
-    write_detections(results_dir, collector.results())
-    write_shapes(results_dir, shapes, x_size=params.x_size, height=height)
+    results_dir = os.path.join(os.path.dirname(__file__), "sim_build", "results")
+    write_results(results_dir, collector.results(), shapes, x_size=params.x_size, height=height)
